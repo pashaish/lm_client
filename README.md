@@ -14,8 +14,14 @@ A native desktop client for interacting with Language Models (LLMs) built with R
 - 🌙 Dark theme UI
 
 ## Screenshots
+
+### Messaging view
 <img width="3022" height="1836" alt="image" src="https://github.com/user-attachments/assets/a536c1de-5e21-4500-a5db-006d5e1456e1" />
+
+### Api Settings
 <img width="1511" height="919" alt="image" src="https://github.com/user-attachments/assets/7c37c7c1-572f-4d36-aecb-5fc928a06b01" />
+
+### Presets Settings
 <img width="1511" height="918" alt="image" src="https://github.com/user-attachments/assets/9bd8d2e6-948e-4f13-aea8-fc67e290c6ca" />
 
 
