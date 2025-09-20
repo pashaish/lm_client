@@ -1,0 +1,1 @@
+cargo build --target aarch64-apple-darwin

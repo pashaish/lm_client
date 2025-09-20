@@ -1,0 +1,1 @@
+RUST_LOG=services=debug,lm_client=debug,api=debug,database=debug,types=debug sh ./scripts/inner/run.sh

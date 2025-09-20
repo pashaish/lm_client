@@ -1,0 +1,6 @@
+/target
+/default_workspace/*.db
+/default_workspace/vector
+**/.DS_Store
+/temp/*
+/certs/*

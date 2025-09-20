@@ -1,0 +1,72 @@
+[package]
+name = "lm_client"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+iced = { version = "0.13.1", features = ["markdown", "tokio", "advanced"] }
+iced_font_awesome = { version = "0.2.1" }
+iced_aw = { version = "0.12.2", default-features = false, features = [
+  "context_menu"
+] }
+log = "0.4.27"
+env_logger = "0.11.8"
+uuid = { version = "1.16.0", features = ["v4"] }
+tokio = { version = "1.44.2", features = ["full"] }
+
+framework = { workspace = true }
+
+[build-dependencies]
+apple-bundles = "0.21.0"
+
+[workspace]
+members = [
+  "modules/api",
+  "modules/database",
+  "modules/services",
+  "modules/types",
+  "modules/utils",
+  "framework",
+]
+
+[workspace.dependencies]
+database = { path = "./modules/database" }
+types = { path = "./modules/types" }
+services = { path = "./modules/services" }
+api = { path = "./modules/api" }
+framework = { path = "./framework" }
+utils = { path = "./modules/utils" }
+
+[patch.crates-io]
+iced = { git = "https://github.com/pashaish/iced.git", branch = "0.13.1-0.3"}
+
+[workspace.lints.clippy]
+pedantic = { level = "deny", priority = -1 }
+all = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
+vec_init_then_push = "allow"
+new_without_default = "allow"
+unused_self = "allow"
+struct_field_names = "allow"
+single_call_fn = "allow"
+needless_pass_by_ref_mut = "allow"
+multiple_inherent_impl = "allow"
+implicit_return = "allow"
+expect_used = "allow"
+impl_trait_in_params = "allow"
+absolute_paths = "allow"
+missing_docs_in_private_items = "allow"
+arbitrary_source_item_ordering = "allow"
+wildcard_enum_match_arm = "allow"
+restriction = "allow" 
+significant_drop_tightening = "allow"
+too_many_lines = "allow"
+
+[lints]
+workspace = true

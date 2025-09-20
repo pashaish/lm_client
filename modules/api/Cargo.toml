@@ -1,0 +1,19 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+types.workspace=true
+database.workspace=true
+
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+reqwest = { version = "0.12.15", features = ["json"] }
+reqwest-eventsource = "0.6.0"
+async-stream = "0.3.6"
+futures-util = "0.3.31"
+log = "0.4.27"
+
+[lints]
+workspace = true

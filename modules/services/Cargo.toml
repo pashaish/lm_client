@@ -1,0 +1,24 @@
+[package]
+name = "services"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+database = { workspace = true, features = ["databases-access"]}
+types.workspace=true
+utils.workspace=true
+api.workspace=true
+
+iced = { version = "0.13.1", features = ["tokio"] }
+async-fn-stream = "0.2.2"
+log = "0.4.27"
+env_logger = "0.11.8"
+uuid = { version = "1.16.0", features = ["v4"] }
+pub-sub = "2.0.0"
+text-splitter = { version = "0.25.1", features = ["markdown", "tiktoken-rs"]}
+tiktoken-rs = "0.6.0"
+seahash = "4.1.0"
+tokio = { version = "1.44.2", features = ["full"] }
+
+[lints]
+workspace = true

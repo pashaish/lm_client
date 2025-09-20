@@ -1,0 +1,1 @@
+rustup target list | sed -ne 's/ *(installed)$//p'
