@@ -81,8 +81,6 @@ impl Rag {
                 main_column = main_column.push(Container::new(
                     Row::new()
                         .push(rag_file_name)
-                // ?TODO: NEED UPDATE
-
                         .push(
                             Button::new(
                                 Text::new("🗑️")
@@ -95,10 +93,6 @@ impl Rag {
                             .style(button::danger)
                             .padding(5)
                         )
-                        // .push(IconButton::new(
-                        //     IconType::Solid(IconName::Trash),
-                        //     super::Message::StartDeletingRagFile(rag_file.id),
-                        // )),
                 ));
             }
         }

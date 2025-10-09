@@ -1,4 +1,4 @@
-                // TODO: NEED UPDATE
+// TODO: NEED UPDATE
 
 // use iced::{
 //     Element, Theme,
@@ -67,6 +67,7 @@
 
 //     fn view(self) -> iced::Element<'a, T> {
 //         let actions = self.actions.clone();
+
 //         iced_aw::ContextMenu::new(self.content, move || {
 //             let mut column = Column::new();
 //             for action in actions.clone() {
