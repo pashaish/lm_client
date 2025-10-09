@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 
 use framework::{types::dto::ConversationNodeID, utils::take_component};
 use iced::widget::pane_grid::{self, ResizeEvent};
@@ -23,6 +23,14 @@ pub enum Message {
 
     HideSettingsPane,
     ShowSettingsPane,
+}
+impl Hash for Message {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        core::mem::discriminant(self).hash(state);
+        if let Self::Chat(id, _) = self {
+            id.hash(state);
+        }
+    }
 }
 
 #[derive(Debug)]

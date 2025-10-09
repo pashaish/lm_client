@@ -2,17 +2,18 @@ use framework::Context;
 use iced::{
     Element, Padding, Size,
     widget::{
-        Column, MouseArea, Row, Scrollable, container, horizontal_space,
-        vertical_space,
+        Button, Column, MouseArea, Row, Scrollable, button, container, space
+        // horizontal_space,
+        // vertical_space,
     },
 };
 
 use crate::{
     theme::styles::{self},
     widgets::{
-        dragging_placeholder::DraggingPlaceholder,
-        icon::{IconName, IconType},
-        icon_button::IconButton,
+        // dragging_placeholder::DraggingPlaceholder,
+        // icon::{IconName, IconType},
+        // icon_button::IconButton,
     },
 };
 
@@ -27,45 +28,62 @@ impl Folders {
 
         main_column = main_column.push(
             Row::new()
-                .push(horizontal_space())
-                .push(IconButton::new(
-                    IconType::Solid(IconName::Plus),
-                    super::Message::CreateChat,
-                ))
-                .push(IconButton::new(
-                    IconType::Solid(IconName::FolderPlus),
-                    super::Message::CreateFolder,
-                )),
+                // ?TODO: NEED UPDATE
+
+                .push(space::horizontal())
+                .push(
+                    MouseArea::new(
+                        iced::widget::Text::new("+💬")
+                            .width(iced::Length::Shrink)
+                            .align_x(iced::alignment::Horizontal::Center)
+                            .align_y(iced::alignment::Vertical::Center),
+                    )
+                    .interaction(iced::mouse::Interaction::Pointer)
+                    .on_press(super::Message::CreateChat)
+                )
+
+                .push(
+                    MouseArea::new(
+                        iced::widget::Text::new("+📁")
+                            .width(iced::Length::Shrink)
+                            .align_x(iced::alignment::Horizontal::Center)
+                            .align_y(iced::alignment::Vertical::Center),
+                    )
+                    .interaction(iced::mouse::Interaction::Pointer)
+                    .on_press(super::Message::CreateFolder)
+                )
         );
         main_column = main_column.push(
             self.root_folder
                 .view(&self.shared_state)
                 .map(super::Message::TreeNode),
         );
+                // ?TODO: NEED UPDATE
 
         main_column = main_column
             .push(
-                MouseArea::new(vertical_space().width(iced::Length::Fill).height(100))
+                MouseArea::new(space::vertical().width(iced::Length::Fill).height(100))
                     .on_release(super::Message::ReleaseFreeArea),
             );
 
         if let Some(dragged_id) = self.shared_state.dragged {
-            let item = self
-                .root_folder
-                .find_child(dragged_id)
-                .expect("Item should be present in the tree");
+            // -TODO: NEED UPDATE
+            // let item = self
+            //     .root_folder
+            //     .find_child(dragged_id)
+            //     .expect("Item should be present in the tree");
 
-            let placeholder = DraggingPlaceholder::new(
-                move || {
-                    item.clone()
-                        .title(&SharedState::new())
-                        .map(super::Message::TreeNode)
-                },
-                true,
-                Size::new(200.0, 100.0),
-            );
+            // let placeholder = DraggingPlaceholder::new(
+            //     move || {
+            //         item.clone()
+            //             .title(&SharedState::new())
+            //             .map(super::Message::TreeNode)
+            //     },
+            //     true,
+            //     Size::new(200.0, 100.0),
+            // );
 
-            main_column = main_column.push(placeholder);
+            // main_column = main_column.push(placeholder);
         }
 
         iced::widget::Container::new(

@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::{hash::Hash, sync::{Arc, RwLock}};
 
 use iced::{
     Subscription, Task,
@@ -7,7 +7,7 @@ use iced::{
         widget::{Id, operate},
     },
     event::listen_raw,
-    futures::stream,
+    futures::{SinkExt, stream},
     mouse,
 };
 
@@ -82,31 +82,38 @@ impl FocusManager {
     }
 
     /// # Panics
-    #[must_use] pub fn focus<T>(&self, raw_id: &str) -> iced::Task<T>
+    #[must_use] pub fn focus<T>(&self, raw_id: &'static str) -> iced::Task<T>
     where
         T: Clone + Send + 'static,
     {
-        let id = Id::new(raw_id.to_string());
+                // ?TODO: NEED UPDATE
+
+        let id = Id::new(raw_id);
         let mut state = self.state.write().expect("Failed to write to state");
         state.previous_focus = Some(id.clone());
         state.current_focus = Some(id.clone());
 
         operate(advanced::widget::operation::focusable::focus(id))
+        // Task::none()
     }
 
     pub fn unfocus<TMessage>(
         &self,
-        focus_id: &str,
+        focus_id: &'static str,
         message: TMessage,
     ) -> iced::Subscription<TMessage>
     where
-        TMessage: Clone + Sync + Send + 'static,
+        TMessage: Clone + Sync + Send + Hash + 'static,
     {
-        if self.was_unfocus(iced::advanced::widget::Id::new(focus_id.to_string())) {
-            return Subscription::run_with_id(
-                focus_id.to_string(),
-                stream::once(async move { message }),
-            );
+                // -TODO: NEED UPDATE
+
+        if self.was_unfocus(iced::advanced::widget::Id::new(focus_id)) {
+            // return Subscription::run_with_id(
+            //     focus_id.to_string(),
+            //     stream::once(async move { message }),
+            // );
+            
+            // return sub;
         }
 
         Subscription::none()

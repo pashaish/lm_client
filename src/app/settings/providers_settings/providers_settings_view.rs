@@ -1,8 +1,8 @@
 use framework::{types::dto::ProviderDTO, Context};
 use iced::{
-    widget::{
-        button, container, horizontal_space, pane_grid, text, vertical_space, Column, Container, Row, Scrollable, Text
-    }, Element, Theme
+    Element, Theme, widget::{
+        Column, Container, Row, Scrollable, Text, button, container, pane_grid, space, text
+    }
 };
 
 use crate::{
@@ -115,7 +115,7 @@ impl ProvidersSettings {
                         .on_change(super::Message::UpdateProviderDefaultModel)
                         .label("Default Model"),
                 )
-                .push(vertical_space())
+                .push(space::vertical())
                 .push(
                     Row::new()
                         .spacing(10)
@@ -127,7 +127,7 @@ impl ProvidersSettings {
                             )
                             .on_press(super::Message::SaveProvider),
                         )
-                        .push(horizontal_space())
+                        .push(space::horizontal())
                         .push(if self.is_unsaved_changes() {
                             Text::new("Unsaved changes").style(text::danger).size(20)
                         } else {

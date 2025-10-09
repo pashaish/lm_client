@@ -4,7 +4,7 @@ use framework::{types::dto::ConversationNodeDTO, utils::take_component};
 
 use super::basic::Basic;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub enum Message {
     Summary(super::summary::Message),
     Rag(super::rag::Message),

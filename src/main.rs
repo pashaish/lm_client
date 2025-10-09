@@ -7,13 +7,18 @@ mod app;
 mod theme;
 mod widgets;
 
-#[tokio::main]
-async fn main() {
+// #[tokio::main]
+fn main() {
     env_logger::init();
 
-    iced::application(APP_NAME, App::update, App::view)
-        .theme(|_| Theme::Custom(dark_theme()))
-        .subscription(App::subscription)
-        .run_with(App::new)
-        .expect("Failed to run the application");
+    iced::application::application(
+        App::new,
+        App::update,
+        App::view,
+    )
+    .subscription(App::subscription)
+    // .theme(|_| Theme::Custom(dark_theme()))
+    .title(APP_NAME)
+    .run()
+    .expect("Failed to run the application");
 }

@@ -16,7 +16,7 @@ pub struct Folders {
     pub(super) shared_state: SharedState,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub enum Message {
     TreeNode(super::tree_node::Message),
     CreateFolder,

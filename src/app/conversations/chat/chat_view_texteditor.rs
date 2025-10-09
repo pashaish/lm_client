@@ -2,7 +2,7 @@ use std::ops::RangeInclusive;
 
 use framework::Context;
 use iced::{
-    keyboard::key::{Code, Physical}, widget::{horizontal_space, text_editor::{Binding, KeyPress}, Column, Container, ProgressBar, Row, Text, TextEditor}, Element, Length
+    Element, Length, keyboard::key::{Code, Named, Physical}, widget::{Column, Container, ProgressBar, Row, Text, TextEditor, space, text_editor::{Binding, KeyPress}}
 };
 
 use crate::widgets::button::Button;
@@ -18,8 +18,10 @@ impl Chat {
 
         let is_available = !self.gathering_message_process && !self.loading_file;
 
-        let mut text_editor = TextEditor::new(&self.text_editor_content)
-            .id(self.text_editor_id.clone());
+                // - TODO: NEED UPDATE
+
+        let mut text_editor = TextEditor::new(&self.text_editor_content);
+            // .id(self.text_editor_id.clone());
 
         if is_available && !self.is_need_generate {
             text_editor = text_editor
@@ -46,7 +48,7 @@ impl Chat {
                     .align_y(iced::alignment::Vertical::Center)
                     .padding(10)
                     .spacing(10)
-                    .push(horizontal_space())
+                    .push(space::horizontal())
                     .push(stop_button),
             );
         } else {
@@ -75,7 +77,7 @@ impl Chat {
                     .align_y(iced::alignment::Vertical::Center)
                     .padding(10)
                     .spacing(10)
-                    .push(horizontal_space())
+                    .push(space::horizontal())
                     .push(send_button),
             );
         }
@@ -90,9 +92,11 @@ impl Chat {
     }
 
     fn key_bindings(key_press: KeyPress) -> Option<Binding<super::Message>> {
-        match key_press.clone().physical_key {
-            Physical::Code(Code::Enter) if key_press.modifiers.shift() => Some(Binding::Enter),
-            Physical::Code(Code::Enter) => Some(Binding::Custom(super::Message::SendMessage)),
+        match key_press.clone().key {
+            // ?TODO: NEED UPDATE
+            iced::keyboard::Key::Named(Named::Enter) if key_press.modifiers.shift() => Some(Binding::Enter),
+            iced::keyboard::Key::Named(Named::Enter) => Some(Binding::Custom(super::Message::SendMessage)),
+
             _ => Binding::from_key_press(key_press),
         }
     }
@@ -104,10 +108,11 @@ impl Chat {
                     .padding(5)
                     .spacing(5)
                     .push(Text::new(label).style(iced::widget::text::secondary))
+
                     .push(
                         ProgressBar::new(RangeInclusive::new(range.start, range.end), value)
-                            .height(5)
-                            .width(Length::Fill)
+                            .girth(5)
+                            .length(Length::Fill)
                     )
             ).into());
         }

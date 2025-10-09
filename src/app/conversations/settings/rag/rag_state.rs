@@ -5,7 +5,7 @@ use framework::{types::{common::ProgressStatus, dto::{ConversationNodeDTO, RagFi
 use crate::app::common::model_picker;
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub enum Message {
     ModelPicker(model_picker::Message),
 

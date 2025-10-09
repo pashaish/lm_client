@@ -3,7 +3,9 @@ use std::{collections::HashMap, ops::RangeInclusive};
 use iced::{widget::{button, Column, Container, Row, Slider, Text}, Element};
 use framework::{types::dto::RagFileDTO, Context};
 
-use crate::widgets::{button::Button, icon::{IconName, IconType}, icon_button::IconButton};
+use crate::widgets::{button::Button, 
+    // icon::{IconName, IconType}, icon_button::IconButton
+};
 
 use super::Rag;
 
@@ -79,10 +81,24 @@ impl Rag {
                 main_column = main_column.push(Container::new(
                     Row::new()
                         .push(rag_file_name)
-                        .push(IconButton::new(
-                            IconType::Solid(IconName::Trash),
-                            super::Message::StartDeletingRagFile(rag_file.id),
-                        )),
+                // ?TODO: NEED UPDATE
+
+                        .push(
+                            Button::new(
+                                Text::new("🗑️")
+                                    .width(iced::Length::Fill)
+                                    .align_x(iced::Alignment::Center)
+                                    .align_y(iced::Alignment::Center),
+                            )
+                            .on_press(super::Message::StartDeletingRagFile(rag_file.id))
+                            .view()
+                            .style(button::danger)
+                            .padding(5)
+                        )
+                        // .push(IconButton::new(
+                        //     IconType::Solid(IconName::Trash),
+                        //     super::Message::StartDeletingRagFile(rag_file.id),
+                        // )),
                 ));
             }
         }

@@ -11,6 +11,7 @@ pub fn dark_theme() -> Arc<Custom> {
             primary: Color::parse("#b86725").unwrap(),
             success: Color::parse("#4EC9B0").unwrap(),
             danger: Color::parse("#FF5555").unwrap(),
+            warning: Color::parse("#FFAA00").unwrap(),
         },
     ))
 }

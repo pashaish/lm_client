@@ -4,7 +4,7 @@ use iced::{Element, Task, widget::text_editor};
 
 use crate::app::common::markdown_viewer::markdown_viewer_view::{BASE_TEXT_SIZE, ViewContext};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub enum Message {
     Update(String),
 

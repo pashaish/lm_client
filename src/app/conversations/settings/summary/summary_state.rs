@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use framework::{types::dto::ConversationNodeDTO, utils::take_component};
 use iced::widget::text_editor;
 
@@ -13,6 +15,12 @@ pub enum Message {
     UpdateHandEditing(bool),
     UpdateConversation(ConversationNodeDTO),
     StartLoadingSummary,
+}
+
+impl Hash for Message {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        core::mem::discriminant(self).hash(state);
+    }
 }
 
 #[derive(Debug)]

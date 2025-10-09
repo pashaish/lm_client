@@ -32,20 +32,20 @@ impl MarkdownViewer {
                 let mut row = iced::widget::row(vec![]);
 
                 for char in value {
-                    let rich_char = rich_text([
-                        span(char.value.clone())
-                            .size(context.text_size)
-                    ])
-                        .width(iced::Length::Shrink)
-                        .height(iced::Length::Shrink);
+                    // let rich_char = rich_text([
+                    //     span(char.value.clone())
+                    //         .size(context.text_size as u32)
+                    // ])
+                    //     .width(iced::Length::Shrink)
+                    //     .height(iced::Length::Shrink);
 
-                    row = row.push(
-                        iced::widget::MouseArea::new(
-                            rich_char
-                        )
-                            .on_press(super::Message::StartSelection(char.id))
-                            // .on_release(super::Message::StartSelection(char.id))
-                    );
+                    // row = row.push(
+                    //     iced::widget::MouseArea::new(
+                    //         rich_char
+                    //     )
+                    //         .on_press(super::Message::StartSelection(char.id))
+                    //         // .on_release(super::Message::StartSelection(char.id))
+                    // );
                 }
                 
                 row.into()

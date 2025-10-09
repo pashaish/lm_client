@@ -4,7 +4,7 @@ use super::{MessageViewer, message_viewer_state::SharedState};
 use framework::{Context, types::dto::MessageDTO, utils::notify};
 use iced::{
     Task,
-    widget::{markdown, text_editor},
+    widget::{text_editor},
 };
 
 impl MessageViewer {
@@ -92,7 +92,6 @@ impl MessageViewer {
 
                 Task::none()
             }
-            super::Message::LinkClicked(_url) => Task::none(),
             super::Message::ReasoningExpanded(expanded) => {
                 self.reasoning_expanded = expanded;
                 Task::none()

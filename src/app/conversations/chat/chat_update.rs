@@ -164,9 +164,10 @@ impl Chat {
 
                 self.messages.insert(new_dto.id, gathering_message);
 
-                tasks.push(operate(operation::focusable::focus(
-                    iced::advanced::widget::Id::new(self.text_editor_id.clone()),
-                )));
+                // ?TODO: NEED UPDATE
+
+                let id = iced::advanced::widget::Id::new(&self.text_editor_id);
+                tasks.push(operate(operation::focusable::focus(id)));
 
                 Task::batch(tasks)
             }

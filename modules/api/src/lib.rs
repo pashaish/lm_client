@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod open_ai_api;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Hash)]
 pub struct MessageChunk
 where
     Self: Sized + Send + 'static,
@@ -25,7 +25,7 @@ impl MessageChunk {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Hash)]
 pub enum ComplitationStatus
 where
     Self: Sized + std::marker::Send + Sync + 'static,
