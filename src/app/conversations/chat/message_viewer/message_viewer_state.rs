@@ -1,8 +1,10 @@
 use framework::{
     services::ConversationsService,
-    types::dto::{MessageDTO, MessageID, RoleType},
+    types::dto::{MessageDTO, MessageID, RoleType}, utils::take_component,
 };
-use iced::widget::{markdown, text_editor};
+use iced::widget::{text_editor};
+
+use crate::app::common::markdown_viewer::{self, MarkdownViewer};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -19,6 +21,9 @@ pub enum Message {
 
     Delete,
     DeleteComplete,
+
+    ContentUpdate(markdown_viewer::Message),
+    ReasoningUpdate(markdown_viewer::Message),
 }
 
 #[derive(Debug, Default)]
@@ -32,11 +37,9 @@ pub struct SharedState {
 pub struct MessageViewer {
     pub(super) message_dto: MessageDTO,
 
-    pub(super) content_string: String,
-    pub(super) content: Vec<markdown::Item>,
+    pub(super) content: MarkdownViewer,
 
-    pub(super) reasoning_string: String,
-    pub(super) reasoning: Vec<markdown::Item>,
+    pub(super) reasoning: MarkdownViewer,
     pub(super) reasoning_expanded: bool,
 
     pub(super) conversations_service: ConversationsService,
@@ -47,7 +50,7 @@ impl MessageViewer {
         conversation_service: ConversationsService,
         message_dto: MessageDTO,
     ) -> (Self, iced::Task<Message>) {
-        let tasks = vec![];
+        let mut tasks = vec![];
 
         let initial_content = message_dto.content.clone();
         let initial_reasoning = message_dto.reasoning.clone().unwrap_or_default();
@@ -56,10 +59,16 @@ impl MessageViewer {
             Self {
                 conversations_service: conversation_service,
                 message_dto,
-                content_string: initial_content.clone(),
-                content: markdown::parse(&initial_content).collect(),
-                reasoning_string: initial_reasoning.clone(),
-                reasoning: markdown::parse(&initial_reasoning).collect(),
+                content: take_component(
+                    &mut tasks,
+                    Message::ContentUpdate,
+                    MarkdownViewer::new(&initial_content)
+                ),
+                reasoning: take_component(
+                    &mut tasks,
+                    Message::ReasoningUpdate,
+                    MarkdownViewer::new(&initial_reasoning)
+                ),
                 reasoning_expanded: false,
             },
             iced::Task::batch(tasks),
@@ -72,15 +81,16 @@ impl MessageViewer {
 
     pub fn get_dto(&self) -> MessageDTO {
         let origin_dto = self.message_dto.clone();
+        let reasoning_trimmed = self.reasoning.get_original().trim(); 
 
         MessageDTO {
             id: origin_dto.id,
             conversation_id: origin_dto.conversation_id,
-            content: self.content_string.clone(),
-            reasoning: if self.reasoning_string.trim().is_empty() {
+            content: self.content.get_original().to_string(),
+            reasoning: if reasoning_trimmed.is_empty() {
                 None
             } else {
-                Some(self.reasoning_string.trim().to_string())
+                Some(reasoning_trimmed.to_string())
             },
             timestamp: origin_dto.timestamp,
             role: origin_dto.role,

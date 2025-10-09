@@ -1,5 +1,7 @@
+use crate::app::common::markdown_viewer;
+
 use super::{MessageViewer, message_viewer_state::SharedState};
-use framework::{types::dto::MessageDTO, utils::notify};
+use framework::{Context, types::dto::MessageDTO, utils::notify};
 use iced::{
     Task,
     widget::{markdown, text_editor},
@@ -12,6 +14,8 @@ impl MessageViewer {
         state: &mut SharedState,
     ) -> Task<super::Message> {
         match message {
+            super::Message::ContentUpdate(msg) => self.content.update(msg).map(super::Message::ContentUpdate),
+            super::Message::ReasoningUpdate(msg) => self.reasoning.update(msg).map(super::Message::ReasoningUpdate),
             super::Message::Delete => {
                 let conversations_service = self.conversations_service.clone();
                 let dto_id = self.message_dto.id;
@@ -32,9 +36,9 @@ impl MessageViewer {
             super::Message::DeleteComplete => Task::none(),
             super::Message::StartEdit => {
                 state.editing = Some(self.message_dto.id);
-                state.editing_tmp_content = text_editor::Content::with_text(&self.content_string);
+                state.editing_tmp_content = text_editor::Content::with_text(&self.content.get_original());
                 state.editing_tmp_reasoning =
-                    text_editor::Content::with_text(&self.reasoning_string);
+                    text_editor::Content::with_text(&self.reasoning.get_original());
                 Task::none()
             }
             super::Message::EditContent(action) => {
@@ -83,10 +87,9 @@ impl MessageViewer {
             super::Message::UpdateMessageDTO(dto) => {
                 log::debug!("Update message DTO: {:?}", dto);
                 self.message_dto = dto.clone();
-                self.content_string = dto.content;
-                self.reasoning_string = dto.reasoning.unwrap_or_default();
-                self.content = markdown::parse(&self.content_string).collect();
-                self.reasoning = markdown::parse(&self.reasoning_string).collect();
+                self.content.set_original(dto.content);
+                self.reasoning.set_original(dto.reasoning.unwrap_or_default());
+
                 Task::none()
             }
             super::Message::LinkClicked(_url) => Task::none(),
@@ -98,12 +101,10 @@ impl MessageViewer {
     }
 
     pub fn append_content(&mut self, new_content: &str) {
-        self.content_string.push_str(new_content);
-        self.content = markdown::parse(&self.content_string).collect();
+        self.content.append(new_content);
     }
 
     pub fn append_reasoning(&mut self, new_content: &str) {
-        self.reasoning_string.push_str(new_content);
-        self.reasoning = markdown::parse(&self.reasoning_string).collect();
+        self.reasoning.append(new_content);
     }
 }

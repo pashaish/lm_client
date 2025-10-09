@@ -301,7 +301,7 @@ impl Chat {
 
     fn loaded_batch_messages(
         &mut self,
-        ctx: &Context,
+        ctx: &mut Context,
         new_messages: Vec<MessageDTO>,
     ) -> Task<super::Message> {
         if new_messages.is_empty() {

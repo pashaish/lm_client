@@ -1,15 +1,15 @@
 use framework::{types::dto::MessageID, Context};
 use iced::{
     keyboard::{key::Named, Key}, widget::{
-        container, horizontal_space, markdown, text_editor::{self, Binding, KeyPress}, Column, Container, Row, Text, Tooltip
+        container, horizontal_space, text_editor::{self, Binding, KeyPress}, Column, Container, Row, Text, Tooltip
     }, Element, Padding, Theme
 };
 
-use crate::widgets::{
+use crate::{app::common::markdown_viewer::{self, MarkdownViewer}, widgets::{
     collapsible,
     icon::{IconName, IconType},
     icon_button::IconButton,
-};
+}};
 
 use super::{MessageViewer, message_viewer_state::SharedState};
 
@@ -17,7 +17,7 @@ impl MessageViewer {
     pub fn view<'a>(&'a self, state: &'a SharedState, ctx: &'a Context) -> Element<'a, super::Message> {
         let mut main_column = Column::new();
 
-        let reasoning_string = self.reasoning_string.trim();
+        let reasoning_string = self.reasoning.get_original().trim();
         if !reasoning_string.is_empty() {
             main_column = main_column
                 .push(collapsible(
@@ -26,6 +26,7 @@ impl MessageViewer {
                         state,
                         super::Message::EditReasoning,
                         &self.reasoning,
+                        super::Message::ReasoningUpdate,
                         &state.editing_tmp_reasoning,
                     ),
                     self.reasoning_expanded,
@@ -39,6 +40,7 @@ impl MessageViewer {
                 state,
                 super::Message::EditContent,
                 &self.content,
+                super::Message::ContentUpdate,
                 &state.editing_tmp_content,
             ))
             .spacing(10);
@@ -141,24 +143,20 @@ impl MessageViewer {
 
     fn markdown_content<'a>(
         &'a self,
-        state: &'a SharedState,
-        message: impl Fn(text_editor::Action) -> super::Message + 'a,
-        markdown_items: &'a Vec<markdown::Item>,
+        editing_state: &'a SharedState,
+        submit_editing_message: impl Fn(text_editor::Action) -> super::Message + 'a,
+        content: &'a MarkdownViewer,
+        update_message: impl Fn(markdown_viewer::Message) -> super::Message + 'a,
         editing_content: &'a text_editor::Content,
     ) -> Element<'a, super::Message> {
-        if self.is_editing(state) {
+        if self.is_editing(editing_state) {
             return text_editor::TextEditor::new(editing_content)
-                .on_action(message)
+                .on_action(submit_editing_message)
                 .key_binding(|key| self.key_bindings(key))
                 .into();
         }
 
-        markdown::view(
-            markdown_items,
-            markdown::Settings::default(),
-            markdown::Style::from_palette(Theme::default().palette()),
-        )
-        .map(super::Message::LinkClicked)
+        return content.view().map(update_message);
     }
 
     fn message_controls(&self) -> Element<'_, super::Message> {
