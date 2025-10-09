@@ -7,22 +7,30 @@ use crate::app::common::markdown_viewer::markdown_viewer_view::{BASE_TEXT_SIZE, 
 #[derive(Debug, Clone)]
 pub enum Message {
     Update(String),
+
+    StartSelection(usize),
+    EndSelection(usize),
     
-    Nothing,
+    // Nothing,
+}
+
+#[derive(Debug, Clone, Default)]
+pub(super) struct Char {
+    pub value: char,
+    pub id: usize,
 }
 
 #[derive(Debug, Clone)]
 pub(super) enum MdNode {
     Root { children: Vec<MdNode> },
     Paragraph { children: Vec<MdNode> },
-    Text { value: String },
+    Text { value: Vec<Char> },
     Heading { level: u8, children: Vec<MdNode> },
 }
 
 pub struct MarkdownViewer {
     pub(super) original: String,
     pub(super) node: MdNode,
-    pub(super) view_cache: Option<Element<'static, Message>>,
 }
 
 impl Clone for MarkdownViewer {
@@ -30,7 +38,6 @@ impl Clone for MarkdownViewer {
         Self {
             original: self.original.clone(),
             node: self.node.clone(),
-            view_cache: None,
         }
     }
 }
@@ -54,7 +61,6 @@ impl MarkdownViewer {
             Self {
                 original: "".to_string(),
                 node: MdNode::Root { children: Vec::new() },
-                view_cache: None,
             },
             iced::Task::batch(tasks)
         )
@@ -64,16 +70,22 @@ impl MarkdownViewer {
         &self.original
     }
 
-    pub(super) fn mdast_to_node(mdast: &markdown::mdast::Node) -> MdNode {
+    pub(super) fn mdast_to_node(mdast: &markdown::mdast::Node, last_id: &mut usize) -> MdNode {
         match mdast {
-            markdown::mdast::Node::Root(root) => MdNode::Root { children: root.children.iter().map(Self::mdast_to_node).collect() },
-            markdown::mdast::Node::Paragraph(paragraph) => MdNode::Paragraph { children: paragraph.children.iter().map(Self::mdast_to_node).collect() },
+            markdown::mdast::Node::Root(root) => MdNode::Root { children: root.children.iter().map(|child| Self::mdast_to_node(child, last_id)).collect() },
+            markdown::mdast::Node::Paragraph(paragraph) => MdNode::Paragraph { children: paragraph.children.iter().map(|child| Self::mdast_to_node(child, last_id)).collect() },
             markdown::mdast::Node::Text(text) => MdNode::Text {
-                value: text.value.clone(),
+                value: text.value.chars().map(|c| {
+                    *last_id += 1;
+                    Char {
+                        value: c,
+                        id: *last_id,
+                    }
+                }).collect(),
             },
-            markdown::mdast::Node::Heading(heading) => MdNode::Heading { level: heading.depth, children: heading.children.iter().map(Self::mdast_to_node).collect() },
+            markdown::mdast::Node::Heading(heading) => MdNode::Heading { level: heading.depth, children: heading.children.iter().map(|child| Self::mdast_to_node(child, last_id)).collect() },
             _ => MdNode::Text {
-                value: "[Unsupported node]".into(),
+                value: Default::default(),
             },
         }
     }

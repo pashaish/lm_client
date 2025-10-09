@@ -10,7 +10,7 @@ impl MarkdownViewer {
                 self.original = original;
 
                 if let Ok(node) = &markdown::to_mdast(&self.original, &markdown::ParseOptions::default()) {
-                    self.node = Self::mdast_to_node(node);
+                    self.node = Self::mdast_to_node(node, &mut 0);
                 } else {
                     self.node = MdNode::Root {
                         children: Vec::new(),
@@ -19,7 +19,15 @@ impl MarkdownViewer {
 
                 Task::none()
             }
-            super::Message::Nothing => Task::none(),
+            super::Message::StartSelection(id) => {
+                log::debug!("StartSelection: {}", id);
+                Task::none()
+            },
+            super::Message::EndSelection(_id) => {
+                log::debug!("EndSelection: {}", _id);
+                Task::none()
+            },
+            // super::Message::Nothing => Task::none(),
         }
     }
 

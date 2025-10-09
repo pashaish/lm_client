@@ -31,9 +31,9 @@ impl MarkdownViewer {
             MdNode::Text { value } => {
                 let mut row = iced::widget::row(vec![]);
 
-                for char in value.chars() {
+                for char in value {
                     let rich_char = rich_text([
-                        span(char.clone())
+                        span(char.value.clone())
                             .size(context.text_size)
                     ])
                         .width(iced::Length::Shrink)
@@ -43,7 +43,8 @@ impl MarkdownViewer {
                         iced::widget::MouseArea::new(
                             rich_char
                         )
-                            .on_press(super::Message::Nothing)
+                            .on_press(super::Message::StartSelection(char.id))
+                            // .on_release(super::Message::StartSelection(char.id))
                     );
                 }
                 
