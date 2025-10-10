@@ -1,14 +1,14 @@
-use iced::{Element, Padding, Pixels, Theme, never, widget::{Button, button::Style, rich_text, span, text_editor}};
+use iced::{Element, Padding, Theme, widget::{Button, button::Style, rich_text, span, text_editor}};
 use markdown::mdast::Node;
 
 use crate::app::common::markdown_viewer::markdown_viewer_state::MdNode;
 
 use super::MarkdownViewer;
 
-pub(super) const BASE_TEXT_SIZE: u32 = 21;
+pub(super) const BASE_TEXT_SIZE: u16 = 21;
 
 pub(super) struct ViewContext {
-    pub text_size: u32,
+    pub text_size: u16,
 }
 
 impl MarkdownViewer {
@@ -32,19 +32,20 @@ impl MarkdownViewer {
                 let mut row = iced::widget::row(vec![]);
 
                 for char in value {
-                    let rich_char = rich_text([
-                        span(char.value.clone())
-                            .size(Pixels::from(context.text_size))
-                    ])
-                        .on_link_click(never)
-                        .width(iced::Length::Shrink)
-                        .height(iced::Length::Shrink);
+                    // let rich_char = rich_text([
+                    //     span(char.value.clone())
+                    //         .size(context.text_size as u32)
+                    // ])
+                    //     .width(iced::Length::Shrink)
+                    //     .height(iced::Length::Shrink);
 
-                    row = row.push(
-                        iced::widget::MouseArea::new(rich_char)
-                            .on_press(super::Message::StartSelection(char.id))
-                            .on_release(super::Message::EndSelection(char.id))
-                    );
+                    // row = row.push(
+                    //     iced::widget::MouseArea::new(
+                    //         rich_char
+                    //     )
+                    //         .on_press(super::Message::StartSelection(char.id))
+                    //         // .on_release(super::Message::StartSelection(char.id))
+                    // );
                 }
                 
                 row.into()
