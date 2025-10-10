@@ -1,4 +1,4 @@
-use iced::{Element, Padding, Pixels, Theme, never, widget::{Button, button::Style, rich_text, span, text_editor}};
+use iced::{Color, Element, Padding, Pixels, Theme, never, widget::{Button, button::Style, rich_text, span, text, text_editor}};
 use markdown::mdast::Node;
 
 use crate::app::common::markdown_viewer::markdown_viewer_state::MdNode;
@@ -13,19 +13,19 @@ pub(super) struct ViewContext {
 
 impl MarkdownViewer {
     pub fn view(&self) -> Element<super::Message> {
-        return Self::node_router(&self.node, &ViewContext {
+        return self.node_router(&self.node, &ViewContext {
             text_size: BASE_TEXT_SIZE,
         });
     }
 
-    pub(super) fn node_router<'a>(node: &'a MdNode, context: &ViewContext) -> Element<'a, super::Message> {
+    pub(super) fn node_router<'a>(&self, node: &'a MdNode, context: &ViewContext) -> Element<'a, super::Message> {
         match node {
             MdNode::Root { children } => {
-                let children: Vec<Element<super::Message>> = children.iter().map(|child| Self::node_router(child, context)).collect();
+                let children: Vec<Element<super::Message>> = children.iter().map(|child| self.node_router(child, context)).collect();
                 iced::widget::column(children).into()
             }
             MdNode::Paragraph { children } => {
-                let children: Vec<Element<super::Message>> = children.iter().map(|child| Self::node_router(child, context)).collect();
+                let children: Vec<Element<super::Message>> = children.iter().map(|child| self.node_router(child, context)).collect();
                 iced::widget::row(children).into()
             }
             MdNode::Text { value } => {
@@ -35,16 +35,25 @@ impl MarkdownViewer {
                     let rich_char = rich_text([
                         span(char.value.clone())
                             .size(Pixels::from(context.text_size))
+                            .background_maybe(if self.id_is_selected(char.id) {
+                                    Color::from_rgb(0.3, 0.3, 0.8).into()
+                            } else {
+                                None
+                            })
                     ])
                         .on_link_click(never)
                         .width(iced::Length::Shrink)
                         .height(iced::Length::Shrink);
 
-                    row = row.push(
-                        iced::widget::MouseArea::new(rich_char)
+                    let mut area = iced::widget::MouseArea::new(rich_char)
                             .on_press(super::Message::StartSelection(char.id))
-                            .on_release(super::Message::EndSelection(char.id))
-                    );
+                            .on_release(super::Message::EndSelection);
+
+                    if self.start_selection.is_some() && self.end_selection.is_none() {
+                        area = area.on_move(|_| super::Message::TempEndSelection(char.id));
+                    }
+
+                    row = row.push(area);
                 }
                 
                 row.into()
@@ -59,7 +68,7 @@ impl MarkdownViewer {
                     _ => context.text_size,
                 };
 
-                let children: Vec<Element<super::Message>> = children.iter().map(|child| Self::node_router(
+                let children: Vec<Element<super::Message>> = children.iter().map(|child| self.node_router(
                     child,
                     &ViewContext { text_size: size, ..*context }
                 )).collect();

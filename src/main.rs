@@ -7,7 +7,6 @@ mod app;
 mod theme;
 mod widgets;
 
-// #[tokio::main]
 fn main() {
     env_logger::init();
 
@@ -17,7 +16,7 @@ fn main() {
         App::view,
     )
     .subscription(App::subscription)
-    // .theme(|_| Theme::Custom(dark_theme()))
+    .theme(|_: &_| Theme::Custom(dark_theme()))
     .title(APP_NAME)
     .run()
     .expect("Failed to run the application");

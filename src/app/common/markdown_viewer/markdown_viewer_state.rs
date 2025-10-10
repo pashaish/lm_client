@@ -9,7 +9,8 @@ pub enum Message {
     Update(String),
 
     StartSelection(usize),
-    EndSelection(usize),
+    TempEndSelection(usize),
+    EndSelection,
     
     // Nothing,
 }
@@ -31,6 +32,10 @@ pub(super) enum MdNode {
 pub struct MarkdownViewer {
     pub(super) original: String,
     pub(super) node: MdNode,
+
+    pub(super) start_selection: Option<usize>,
+    pub(super) end_selection: Option<usize>,
+    pub(super) temp_end_selection: Option<usize>,
 }
 
 impl Clone for MarkdownViewer {
@@ -38,6 +43,10 @@ impl Clone for MarkdownViewer {
         Self {
             original: self.original.clone(),
             node: self.node.clone(),
+
+            start_selection: self.start_selection,
+            end_selection: self.end_selection,
+            temp_end_selection: self.temp_end_selection,
         }
     }
 }
@@ -61,6 +70,10 @@ impl MarkdownViewer {
             Self {
                 original: "".to_string(),
                 node: MdNode::Root { children: Vec::new() },
+
+                start_selection: None,
+                end_selection: None,
+                temp_end_selection: None,
             },
             iced::Task::batch(tasks)
         )
@@ -88,5 +101,17 @@ impl MarkdownViewer {
                 value: Default::default(),
             },
         }
+    }
+
+    pub(super) fn id_is_selected(&self, id: usize) -> bool {
+        if let (Some(start), Some(end)) = (self.start_selection, self.temp_end_selection) {
+            if start > end {
+                return id >= end && id <= start;
+            } else {
+                return id >= start && id <= end;
+            }
+        }
+
+        false
     }
 }

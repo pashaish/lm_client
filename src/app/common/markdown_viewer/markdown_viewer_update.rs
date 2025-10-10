@@ -21,10 +21,23 @@ impl MarkdownViewer {
             }
             super::Message::StartSelection(id) => {
                 log::debug!("StartSelection: {}", id);
+                self.start_selection = Some(id);
+                self.end_selection = None;
+                self.temp_end_selection = None;
                 Task::none()
             },
-            super::Message::EndSelection(_id) => {
-                log::debug!("EndSelection: {}", _id);
+            super::Message::EndSelection => {
+                log::debug!("EndSelection");
+
+                self.end_selection = self.temp_end_selection;
+
+                Task::none()
+            },
+            super::Message::TempEndSelection(id) => {
+                log::debug!("TempEndSelection: {}", id);
+
+                self.temp_end_selection = Some(id);
+
                 Task::none()
             },
             // super::Message::Nothing => Task::none(),
