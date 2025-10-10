@@ -2,14 +2,14 @@ use super::{PresetId, ProviderID};
 
 pub type ConversationNodeID = i64;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConversationType {
     #[allow(dead_code)]
     Chat,
     Folder,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConversationNodeDTO {
     pub id: ConversationNodeID,
     #[allow(dead_code)]

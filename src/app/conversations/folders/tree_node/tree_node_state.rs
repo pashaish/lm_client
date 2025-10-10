@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 
 use framework::types::dto::{ConversationNodeDTO, ConversationNodeID, ConversationType};
 use iced::Point;
@@ -44,26 +44,20 @@ pub enum NodeAction {
     StartDelete,
 }
 
-impl Hash for NodeAction {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        core::mem::discriminant(self).hash(state);
-    }
-}
-
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub enum Message {
     NodeAction(ConversationNodeID, NodeAction),
 }
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct FolderDescriptor {
     pub(super) children: Vec<TreeNode>,
 }
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct FileDescriptor {}
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub enum Content {
     Folder(FolderDescriptor),
     #[allow(dead_code)]
@@ -128,14 +122,14 @@ impl SharedState {
     }
 }
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct TreeNode {
     // State
     pub(super) name: String,
     pub(super) id: ConversationNodeID,
     pub(super) content: Content,
     pub(super) parent_id: ConversationNodeID,
-    pub(super) focus_id: &'static str,
+    pub(super) focus_id: String,
 }
 
 impl TreeNode {
@@ -161,7 +155,7 @@ impl TreeNode {
             name,
             id,
             content: Content::Loading,
-            focus_id: format!("TREE_NODE_{id}").leak(),
+            focus_id: format!("TREE_NODE_{id}"),
         };
 
         if matches!(tp, ConversationType::Folder) {

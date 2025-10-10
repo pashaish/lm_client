@@ -1,12 +1,12 @@
 use framework::Context;
 use iced::{
     Background, Length, Theme,
-    widget::{self, Button, Container, Row, container, text},
+    widget::{self, Container, Row, container},
 };
 
 use crate::widgets::{
-    // icon::{IconName, IconType},
-    // icon_button::IconButton,
+    icon::{IconName, IconType},
+    icon_button::IconButton,
 };
 
 use super::{App, app_state};
@@ -32,16 +32,16 @@ impl App {
             .align_x(iced::Alignment::Center);
 
         selection_panel = selection_panel.push(self.selection_panel_button(
-            "💬",
+            IconType::Regular(IconName::Message),
             app_state::View::Conversations,
         ));
 
         selection_panel = selection_panel.push(
-            self.selection_panel_button("💾", app_state::View::Presets),
+            self.selection_panel_button(IconType::Solid(IconName::Box), app_state::View::Presets),
         );
 
         selection_panel = selection_panel.push(
-            self.selection_panel_button("⚙️", app_state::View::Settings),
+            self.selection_panel_button(IconType::Solid(IconName::Gear), app_state::View::Settings),
         );
 
         Container::new(selection_panel)
@@ -60,16 +60,14 @@ impl App {
 
     fn selection_panel_button<'a>(
         &self,
-        txt: &'a str,
+        icon: IconType,
         view: app_state::View,
     ) -> iced::Element<'a, super::Message> {
         let is_selected = if self.current_view == view { 0.5 } else { 0.0 };
 
-        let txt = text(txt);
-
-        Button::new(txt)
-            .on_press(super::Message::StartChangeView(view))
+        IconButton::new(icon, super::Message::StartChangeView(view))
             .padding(8.0)
+            .size(20.0)
             .style(move |theme: &Theme, status| {
                 let palette = theme.extended_palette();
 

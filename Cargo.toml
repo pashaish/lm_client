@@ -4,18 +4,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# iced_font_awesome = { version = "0.2.1" }
-# iced_aw = { version = "0.13.0", default-features = false, features = [
-#   "context_menu"
-# ] }
-iced = { workspace = true }
+iced = { version = "0.13.1", features = ["tokio", "advanced"] }
+iced_font_awesome = { version = "0.2.1" }
+iced_aw = { version = "0.12.2", default-features = false, features = [
+  "context_menu"
+] }
 log = "0.4.27"
 env_logger = "0.11.8"
 uuid = { version = "1.16.0", features = ["v4"] }
 tokio = { version = "1.44.2", features = ["full"] }
 
 framework = { workspace = true }
-markdown = "1.0.0"
+pulldown-cmark = "0.13.0"
+url = "2.5.7"
 
 [build-dependencies]
 apple-bundles = "0.21.0"
@@ -31,7 +32,6 @@ members = [
 ]
 
 [workspace.dependencies]
-iced = { version = "0.14.0-dev", features = ["advanced"] }
 database = { path = "./modules/database" }
 types = { path = "./modules/types" }
 services = { path = "./modules/services" }
@@ -40,8 +40,7 @@ framework = { path = "./framework" }
 utils = { path = "./modules/utils" }
 
 [patch.crates-io]
-# iced = { git = "https://github.com/pashaish/iced.git", branch = "0.13.1-0.3"}
-iced = { git = "https://github.com/iced-rs/iced.git", branch = "master"}
+iced = { git = "https://github.com/pashaish/iced.git", branch = "0.13.1-0.3"}
 
 [workspace.lints.clippy]
 pedantic = { level = "deny", priority = -1 }

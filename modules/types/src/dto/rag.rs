@@ -1,6 +1,6 @@
 pub type RagFileID = i64;
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct RagFileDTO {
     pub file_name: String,
     pub id: RagFileID,
@@ -10,7 +10,7 @@ pub struct RagFileDTO {
 
 pub type ChunkRagId = i64;
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct ChunkRagDTO {
     pub id: ChunkRagId,
     pub file_id: RagFileID,

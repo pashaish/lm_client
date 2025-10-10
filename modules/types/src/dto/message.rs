@@ -4,7 +4,7 @@ use super::{ChunkRagId, ConversationNodeID};
 
 pub type MessageID = i64;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RoleType {
     User,
     Assistant,
@@ -46,14 +46,14 @@ impl TryFrom<String> for RoleType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MessageUsedRagChunk {
     pub chunk_id: ChunkRagId,
     pub dimension: usize,
     pub embedding_model: String,
 }
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct MessageDTO {
     pub id: MessageID,
     pub conversation_id: ConversationNodeID,

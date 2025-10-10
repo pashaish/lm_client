@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub enum ProgressStatus
 where  
     Self: Sized + std::marker::Send + Sync + 'static,

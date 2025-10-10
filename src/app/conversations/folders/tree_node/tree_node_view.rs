@@ -1,15 +1,13 @@
 use iced::{
     Element, Length, Padding, Theme,
-    widget::{Container, MouseArea, Row, TextInput, container::Style, space, text, 
-        // horizontal_space
-    },
+    widget::{Container, MouseArea, Row, TextInput, container::Style, horizontal_space},
 };
 
-// use crate::widgets::{
-//     context_menu::Action,
-//     context_menu::ContextMenu,
-//     icon::{Icon, IconName, IconType},
-// };
+use crate::widgets::{
+    context_menu::Action,
+    context_menu::ContextMenu,
+    icon::{Icon, IconName, IconType},
+};
 
 use super::{
     NodeAction, TreeNode,
@@ -93,19 +91,19 @@ impl TreeNode {
                 right: 5.0,
             })
             .align_y(iced::alignment::Alignment::Center);
-                // ?TODO: NEED UPDATE
 
         let icn = self.get_icon(state);
 
         main_row = main_row.push(icn);
         main_row = main_row.push(iced::widget::text(self.name.clone()).size(16));
-        main_row = main_row.push(space::horizontal());
+        main_row = main_row.push(horizontal_space());
 
         let is_hover = self.is_hover(state);
         let is_pressed = self.is_pressed(state);
         let is_selected = self.is_selected(state);
 
-        let itm = MouseArea::new(
+        let ctx_menu = ContextMenu::new(
+            MouseArea::new(
                 Container::new(main_row)
                     .style(Self::context_menu_style(is_hover, is_pressed, is_selected))
                     .padding(Padding {
@@ -132,50 +130,48 @@ impl TreeNode {
                 self.id,
                 NodeAction::Hover(false),
             ))
-            .interaction(iced::mouse::Interaction::Pointer);
-                // -TODO: NEED UPDATE
+            .interaction(iced::mouse::Interaction::Pointer)
+            .into(),
+        );
 
-        // let ctx_menu = ContextMenu::new(itm,);
+        let ctx_menu = match self.content {
+            Content::Folder(_) => ctx_menu
+                .action(self.create_action(
+                    "New Folder",
+                    super::NodeAction::StartFolderCreate,
+                    IconType::Solid(IconName::FolderPlus),
+                ))
+                .action(self.create_action(
+                    "New Chat",
+                    super::NodeAction::StartConversationCreate,
+                    IconType::Solid(IconName::Comments),
+                ))
+                .action(self.create_action(
+                    "Rename",
+                    super::NodeAction::StartRename,
+                    IconType::Solid(IconName::Pencil),
+                ))
+                .action(self.create_action(
+                    "Delete",
+                    super::NodeAction::StartDelete,
+                    IconType::Solid(IconName::Trash),
+                )),
 
-        // let ctx_menu = match self.content {
-        //     Content::Folder(_) => ctx_menu
-        //         .action(self.create_action(
-        //             "New Folder",
-        //             super::NodeAction::StartFolderCreate,
-        //             IconType::Solid(IconName::FolderPlus),
-        //         ))
-        //         .action(self.create_action(
-        //             "New Chat",
-        //             super::NodeAction::StartConversationCreate,
-        //             IconType::Solid(IconName::Comments),
-        //         ))
-        //         .action(self.create_action(
-        //             "Rename",
-        //             super::NodeAction::StartRename,
-        //             IconType::Solid(IconName::Pencil),
-        //         ))
-        //         .action(self.create_action(
-        //             "Delete",
-        //             super::NodeAction::StartDelete,
-        //             IconType::Solid(IconName::Trash),
-        //         )),
+            Content::Chat(_) => ctx_menu
+                .action(self.create_action(
+                    "Rename",
+                    super::NodeAction::StartRename,
+                    IconType::Solid(IconName::Pencil),
+                ))
+                .action(self.create_action(
+                    "Delete",
+                    super::NodeAction::StartDelete,
+                    IconType::Solid(IconName::Trash),
+                )),
+            Content::Loading => ctx_menu,
+        };
 
-        //     Content::Chat(_) => ctx_menu
-        //         .action(self.create_action(
-        //             "Rename",
-        //             super::NodeAction::StartRename,
-        //             IconType::Solid(IconName::Pencil),
-        //         ))
-        //         .action(self.create_action(
-        //             "Delete",
-        //             super::NodeAction::StartDelete,
-        //             IconType::Solid(IconName::Trash),
-        //         )),
-        //     Content::Loading => ctx_menu,
-        // };
-
-        // ctx_menu.into()
-        itm.into()
+        ctx_menu.into()
     }
 
     fn context_menu_style(
@@ -209,28 +205,35 @@ impl TreeNode {
             }
         }
     }
-                // -TODO: NEED UPDATE
 
-    // const fn create_action<'a>(
-    //     &self,
-    //     name: &'a str,
-    //     node_action: NodeAction,
-    //     icon: IconType,
-    // ) -> Action<'a, super::Message> {
-    //     Action::new(name, super::Message::NodeAction(self.id, node_action)).icon(icon)
-    // }
+    const fn create_action<'a>(
+        &self,
+        name: &'a str,
+        node_action: NodeAction,
+        icon: IconType,
+    ) -> Action<'a, super::Message> {
+        Action::new(name, super::Message::NodeAction(self.id, node_action)).icon(icon)
+    }
 
     fn get_icon<'a>(&self, state: &SharedState) -> Element<'a, super::Message> {
         let icon = match &self.content.clone() {
             Content::Folder(_) => {
                 if self.is_expanded(state) {
-                    text("📂").size(12.0)
+                    Icon::new(IconType::Solid(IconName::ChevronDown))
+                        .view()
+                        .size(12.0)
                 } else {
-                    text("📁").size(12.0)
+                    Icon::new(IconType::Solid(IconName::ChevronRight))
+                        .view()
+                        .size(12.0)
                 }
             }
-            Content::Chat(_) => text("💬").size(12.0),
-            Content::Loading => text("⏳").size(12.0),
+            Content::Chat(_) => Icon::new(IconType::Solid(IconName::Comments))
+                .view()
+                .size(16.0),
+            Content::Loading => Icon::new(IconType::Solid(IconName::Spinner))
+                .view()
+                .size(16.0),
         };
 
         Container::new(icon).into()

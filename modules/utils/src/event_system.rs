@@ -1,9 +1,12 @@
 use std::{
-    any::Any, fmt::Debug, hash::Hash, sync::{Arc, RwLock}
+    any::Any,
+    fmt::Debug,
+    sync::{Arc, RwLock},
 };
 
-use iced::{Subscription, futures::SinkExt, stream};
+use iced::{Subscription, futures::stream};
 use types::{common::ProgressStatus, dto::{ConversationNodeDTO, ConversationNodeID, MessageDTO, MessageID, PresetDTO, ProviderDTO, RagFileDTO}};
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -115,8 +118,8 @@ impl EventSystem {
         converter: impl Fn(TData) -> TMessage + 'static,
     ) -> iced::Subscription<TMessage>
     where
-        TMessage: Debug + Send + Hash + Clone + 'static,
-        TData: Clone + Send + 'static,
+        TMessage: Debug + Send + 'static,
+        TData: Clone + 'static,
     {
         let mut subs = vec![];
         let events = self.events.read().expect("Failed to read events");
@@ -129,21 +132,10 @@ impl EventSystem {
                 let data = data.as_ref().clone();
                 let data = converter(data);
 
-                // ?TODO: NEED UPDATE
-                // subs.push(Subscription::run(
-                //     Uuid::new_v4().to_string(),
-                //     stream::once(async move { data }),
-                // ));
-                let sub = Subscription::run_with(
-                    data,
-                    // |data| stream::once(data)
-                    |data| {
-                        let data = data.clone();
-                        stream::channel(1, async |mut out| { out.send(data).await.unwrap(); })
-                    }
-                );
-
-                subs.push(sub);
+                subs.push(Subscription::run_with_id(
+                    Uuid::new_v4().to_string(),
+                    stream::once(async move { data }),
+                ));
             }
         }
 

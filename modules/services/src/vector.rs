@@ -1,4 +1,4 @@
-use std::{fmt::Debug, fs, hash::Hash, ops::Range, path::PathBuf, pin::Pin};
+use std::{fmt::Debug, fs, ops::Range, path::PathBuf, pin::Pin};
 
 use api::open_ai_api::OpenAiApi;
 use database::{databases::{ConversationDatabase, ProvidersDatabase, VectorDatabase}, DatabaseConnection};
@@ -358,7 +358,7 @@ impl VectorService {
         converter: impl Fn((ConversationNodeID, Vec<RagFileDTO>)) -> T + 'static,
     ) -> Subscription<T>
     where
-        T: Debug + Send + Hash + Clone + 'static,
+        T: Debug + Send + 'static,
     {
         self.event_system.subscribe(
             &utils::event_system::Event::RagFilesUpdated {

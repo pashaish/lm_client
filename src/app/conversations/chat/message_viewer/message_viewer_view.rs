@@ -1,36 +1,25 @@
-use framework::{Context, types::dto::MessageID};
+use framework::{types::dto::MessageID, Context};
 use iced::{
-    Element, Padding, Theme,
-    keyboard::{Key, key::Named},
-    widget::{
-        Button, Column, Container, Id, MouseArea, Row, Text, Tooltip, container, space,
-        text_editor::{self, Binding, KeyPress},
-    },
+    keyboard::{key::Named, Key}, widget::{
+        container, horizontal_space, text_editor::{self, Binding, KeyPress}, Column, Container, Row, Text, Tooltip
+    }, Element, Padding, Theme
 };
 
-use crate::{
-    app::common::markdown_viewer::{self, MarkdownViewer},
-    widgets::{
-        collapsible,
-        // icon::{IconName, IconType},
-        // icon_button::IconButton,
-    },
-};
+use crate::{app::common::markdown_viewer::{self, MarkdownViewer}, widgets::{
+    collapsible,
+    icon::{IconName, IconType},
+    icon_button::IconButton,
+}};
 
 use super::{MessageViewer, message_viewer_state::SharedState};
 
 impl MessageViewer {
-    pub fn view<'a>(
-        &'a self,
-        state: &'a SharedState,
-        ctx: &'a Context,
-    ) -> Element<'a, super::Message> {
+    pub fn view<'a>(&'a self, state: &'a SharedState, ctx: &'a Context) -> Element<'a, super::Message> {
         let mut main_column = Column::new();
 
         let reasoning_string = self.reasoning.get_original().trim();
         if !reasoning_string.is_empty() {
             main_column = main_column
-                .width(iced::Length::Fill)
                 .push(collapsible(
                     "Reasoning",
                     self.markdown_content::<'a>(
@@ -56,7 +45,8 @@ impl MessageViewer {
             ))
             .spacing(10);
 
-        main_column = main_column.push(self.used_chunks(ctx));
+        main_column = main_column
+            .push(self.used_chunks(ctx));
 
         main_column = if self.is_editing(state) {
             main_column.push(self.editing_controls())
@@ -87,20 +77,16 @@ impl MessageViewer {
                     ..Default::default()
                 }
             })
-            // ?TODO: NEED UPDATE
-            .id(Id::new(
-                format!(
-                    "message_{}_{}",
-                    self.message_dto.conversation_id, self.message_dto.id
-                )
-                .leak(),
-            ))
-            .width(iced::Length::Fill)
+            .id(iced::widget::container::Id::new(format!(
+                "message_{}_{}",
+                self.message_dto.conversation_id, self.message_dto.id
+            )))
             .into()
     }
 
-    fn used_chunks(&self, ctx: &Context) -> Element<'_, super::Message> {
-        let mut main_row = Row::new().spacing(10);
+    fn used_chunks(&self, ctx: &Context) -> Element<'_, super::Message> {   
+        let mut main_row = Row::new()
+            .spacing(10);
 
         for chunk in &self.message_dto.chunks {
             let chunk_dto = ctx.vector_service.get_chunk(
@@ -122,36 +108,36 @@ impl MessageViewer {
 
             let chunk_dto = chunk_dto.unwrap();
 
-            let file = ctx
-                .vector_service
-                .get_file(self.message_dto.conversation_id, chunk_dto.file_id)
+            let file = ctx.vector_service.get_file(self.message_dto.conversation_id, chunk_dto.file_id)
                 .expect("File not found");
 
-            main_row = main_row.push(Tooltip::new(
-                Text::new(file.file_name).style(|theme: &Theme| {
-                    let palette = theme.extended_palette();
-                    iced::widget::text::Style {
-                        color: Some(palette.primary.base.color),
-                    }
-                }),
-                Container::new(Text::new(format!(
-                    "{}: {}\n{}",
-                    file.embedding_model, file.dimension, chunk_dto.chunk
-                )))
-                .max_width(600.0)
-                .max_height(400.0)
-                .padding(10)
-                .style(|theme: &Theme| {
-                    let palette = theme.extended_palette();
-                    container::Style {
-                        background: Some(iced::Background::Color(palette.primary.base.color)),
-                        ..Default::default()
-                    }
-                }),
-                iced::widget::tooltip::Position::FollowCursor,
-            ))
-        }
+            main_row = main_row.push(
+                Tooltip::new(
+                    Text::new(file.file_name).style(|theme: &Theme| {
+                        let palette = theme.extended_palette();
+                        iced::widget::text::Style {
+                            color: Some(palette.primary.base.color),
+                        }
+                    }),
+                    Container::new(
+                        Text::new(format!("{}: {}\n{}", file.embedding_model, file.dimension, chunk_dto.chunk)),
+                    )
+                    .max_width(600.0)
+                    .max_height(400.0)
+                    .padding(10)
+                    .style(|theme: &Theme| {
+                        let palette = theme.extended_palette();
+                        container::Style {
+                            background: Some(iced::Background::Color(palette.primary.base.color)),
+                            ..Default::default()
+                        }
+                    }),
 
+                    iced::widget::tooltip::Position::FollowCursor,
+                )
+            )
+        }
+        
         Container::new(main_row).into()
     }
 
@@ -176,71 +162,36 @@ impl MessageViewer {
     fn message_controls(&self) -> Element<'_, super::Message> {
         let is_gathering_message = self.get_id() == MessageID::default();
         Row::new()
-            // ?TODO: NEED UPDATE
-            .width(iced::Length::Fill)
-            .push(space::horizontal())
-            .push({
-                let area = MouseArea::new(
-                    Text::new("✏️")
-                        .width(24)
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center),
-                )
-                .interaction(iced::mouse::Interaction::Pointer);
-
-                if is_gathering_message {
-                    area
-                } else {
-                    area.on_press(super::Message::StartEdit)
-                }
-            })
-            .push({
-                let area = MouseArea::new(
-                    Text::new("🗑️")
-                        .width(24)
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center),
-                )
-                .interaction(iced::mouse::Interaction::Pointer);
-
-                if is_gathering_message {
-                    area
-                } else {
-                    area.on_press(super::Message::Delete)
-                }
-            })
+            .push(horizontal_space())
+            .push(
+                IconButton::new(IconType::Solid(IconName::Pencil), super::Message::StartEdit)
+                    .disabled(is_gathering_message),
+            )
+            .push(
+                IconButton::new(IconType::Solid(IconName::Trash), super::Message::Delete)
+                    .disabled(is_gathering_message),
+            )
             .into()
     }
 
     fn editing_controls(&self) -> Element<'_, super::Message> {
         Row::new()
-            // ?TODO: NEED UPDATE
-            .push(space::horizontal())
-            .push(
-                Button::new(
-                    Text::new("❌")
-                        .width(iced::Length::Shrink)
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center),
-                )
-                .on_press(super::Message::CancelEdit),
-            )
-            .push(
-                Button::new(
-                    Text::new("✅")
-                        .width(iced::Length::Shrink)
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center),
-                )
-                .on_press(super::Message::SubmitEdit),
-            )
+            .push(horizontal_space())
+            .push(IconButton::new(
+                IconType::Solid(IconName::XMark),
+                super::Message::CancelEdit,
+            ))
+            .push(IconButton::new(
+                IconType::Solid(IconName::FloppyDisk),
+                super::Message::SubmitEdit,
+            ))
             .into()
     }
 
     fn key_bindings(&self, key: KeyPress) -> Option<Binding<super::Message>> {
-        let text_editor::Status::Focused { .. } = key.status else {
+        if key.status != text_editor::Status::Focused {
             return None;
-        };
+        }
 
         if key.modifiers.shift() && key.key == Key::Named(Named::Enter) {
             return Some(Binding::Custom(super::Message::SubmitEdit));

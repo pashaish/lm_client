@@ -1,4 +1,4 @@
-use std::{fmt::Display, hash::Hash};
+use std::fmt::Display;
 
 pub type PresetId = i64;
 
@@ -9,11 +9,6 @@ pub struct PresetDTO {
     pub prompt: String,
     pub temperature: f32,
     pub max_tokens: u32,
-}
-impl Hash for PresetDTO {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }
 
 impl PresetDTO {

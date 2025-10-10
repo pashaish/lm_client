@@ -1,5 +1,3 @@
-use std::hash::Hash;
-
 use framework::{
     services::ConversationsService,
     types::dto::{MessageDTO, MessageID, RoleType}, utils::take_component,
@@ -12,6 +10,7 @@ use crate::app::common::markdown_viewer::{self, MarkdownViewer};
 pub enum Message {
     UpdateMessageDTO(MessageDTO),
 
+    // LinkClicked(iced::widget::markdown::Url),
     ReasoningExpanded(bool),
 
     StartEdit,
@@ -25,24 +24,6 @@ pub enum Message {
 
     ContentUpdate(markdown_viewer::Message),
     ReasoningUpdate(markdown_viewer::Message),
-}
-
-impl Hash for Message {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        match self {
-            Self::UpdateMessageDTO(data) => data.id.hash(state),
-            Self::ReasoningExpanded(data) => data.hash(state),
-            Self::StartEdit => 1.hash(state),
-            Self::EditReasoning(data) => {},
-            Self::EditContent(data) => {},
-            Self::SubmitEdit => 2.hash(state),
-            Self::CancelEdit => 3.hash(state),
-            Self::Delete => 4.hash(state),
-            Self::DeleteComplete => 5.hash(state),
-            Self::ContentUpdate(data) => data.hash(state),
-            Self::ReasoningUpdate(data) => data.hash(state),
-        }
-    }
 }
 
 #[derive(Debug, Default)]

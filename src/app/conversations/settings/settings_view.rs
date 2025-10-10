@@ -1,14 +1,14 @@
 
 use crate::{
     theme::styles,
-    // widgets::icon::{Icon, IconName, IconType},
+    widgets::icon::{Icon, IconName, IconType},
 };
 use framework::Context;
 use iced::{
     Element, Theme,
     widget::{
-        Column, Container, Row, Scrollable, Text, container, space, text
-        // horizontal_space,
+        Column, Container, Row, Scrollable, Text, container,
+        horizontal_space,
     },
 };
 
@@ -73,12 +73,16 @@ impl Settings {
                             .align_y(iced::alignment::Vertical::Center)
                             .padding(1)
                             .spacing(4)
-                // +TODO: NEED UPDATE
-
                             .push(
-                                text(if is_expanded { "📂" } else { "📁" }).size(12.0)
+                                Icon::new(IconType::Solid(if is_expanded {
+                                    IconName::ChevronDown
+                                } else {
+                                    IconName::ChevronRight
+                                }))
+                                .alpha(0.3)
+                                .view()
+                                .size(12.0),
                             )
-
                             .push(Text::new(label).size(12).style(|theme: &Theme| {
                                 let palette = theme.extended_palette();
                                 iced::widget::text::Style {
@@ -98,7 +102,7 @@ impl Settings {
             );
 
             if is_expanded {
-                column = column.push(Row::new().push(space::horizontal().width(10)).push(element));
+                column = column.push(Row::new().push(horizontal_space().width(10)).push(element));
             }
         }
 

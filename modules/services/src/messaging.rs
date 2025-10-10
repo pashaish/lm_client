@@ -17,7 +17,7 @@ pub struct MessagingService {
     event_system: EventSystem,
 }
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub enum MessagingEvent {
     ReceiveMessage(ComplitationStatus),
     Error(String),

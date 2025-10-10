@@ -11,7 +11,7 @@ pub enum ModelType {
     Summary(ConversationNodeID),
 }
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub enum Message {
     SelectProvider(ProviderDTO),
     SelectModel(String),

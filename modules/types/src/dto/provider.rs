@@ -8,7 +8,7 @@ pub struct LmModel {
     pub provider: Option<ProviderDTO>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ProviderDTO {
     #[allow(dead_code)]
     pub id: ProviderID,

@@ -1,12 +1,10 @@
 use framework::Context;
 use iced::{
     Element, Theme,
-    widget::{Button, Container, MouseArea, Row, container, text},
+    widget::{Container, Row, container},
 };
 
-// use crate::{theme::styles, widgets::{icon::{IconName, IconType}, icon_button::IconButton}};
-
-use crate::theme::styles;
+use crate::{theme::styles, widgets::{icon::{IconName, IconType}, icon_button::IconButton}};
 
 use super::Chat;
 
@@ -31,24 +29,15 @@ impl Chat {
         let chat_name = self.chat.as_ref().map_or_else(|| "Loading...".to_string(), |chat| chat.name.clone());
 
         let icon_btn = if settings_expanded {
-                // ?TODO: NEED UPDATE
-
-                MouseArea::new(
-                    text(">")
-                        .width(iced::Length::Fill)
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center),
-                )
-                .on_press(super::Message::ToggleSettings(false))
+            IconButton::new(
+                IconType::Solid(IconName::ChevronRight),
+                super::Message::ToggleSettings(false),
+            )
         } else {
-                // ?TODO: NEED UPDATE
-                MouseArea::new(
-                    text("<")
-                        .width(iced::Length::Fill)
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center),
-                )
-                .on_press(super::Message::ToggleSettings(true))
+            IconButton::new(
+                IconType::Solid(IconName::ChevronLeft),
+                super::Message::ToggleSettings(true),
+            )
         };
 
         Row::new()

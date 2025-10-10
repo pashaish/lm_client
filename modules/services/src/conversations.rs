@@ -1,5 +1,6 @@
 use std::{
-    fmt::Debug, hash::Hash, sync::{Arc, RwLock}
+    fmt::Debug,
+    sync::{Arc, RwLock},
 };
 
 use database::{
@@ -116,7 +117,7 @@ impl ConversationsService {
         message: impl Fn(ConversationNodeID) -> TMessage + 'static,
     ) -> iced::Subscription<TMessage>
     where
-        TMessage: Debug + Send + Clone + Hash + 'static,
+        TMessage: Debug + Send + 'static,
     {
         self.event_system
             .subscribe(&Event::ConversationDelete(conversation_id), message)
@@ -352,7 +353,7 @@ impl ConversationsService {
         message: impl Fn(ConversationNodeDTO) -> TMessage + 'static,
     ) -> iced::Subscription<TMessage>
     where
-        TMessage: Debug + Send + Clone + Hash + 'static,
+        TMessage: Debug + Send + 'static,
     {
         self.event_system
             .subscribe(&Event::ConversationUpdate(chat.clone()), message)
@@ -364,7 +365,7 @@ impl ConversationsService {
         message: impl Fn(ConversationNodeDTO) -> TMessage + 'static,
     ) -> iced::Subscription<TMessage>
     where
-        TMessage: Debug + Send + Clone + Hash + 'static,
+        TMessage: Debug + Send + 'static,
     {
         self.event_system.subscribe(
             &Event::ConversationUpdate(ConversationNodeDTO::empty_with_id(chat_id)),
