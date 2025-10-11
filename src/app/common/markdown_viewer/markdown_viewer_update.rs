@@ -19,6 +19,14 @@ pub(super) struct ParsingState {
 impl MarkdownViewer {
     pub fn update(&mut self, message: super::Message) -> Task<super::Message> {
         match message {
+            super::Message::OnEnterMouse => {
+                self.is_hovered = true;
+                Task::none()
+            }
+            super::Message::OnLeaveMouse => {
+                self.is_hovered = false;
+                Task::none()
+            }
             super::Message::Update(original) => {
                 self.original = original;
 

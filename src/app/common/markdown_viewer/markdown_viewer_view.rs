@@ -1,8 +1,10 @@
 use iced::{
-    Border, Element, Font, Length, Padding, Theme,
+    Border, Color, Element, Font, Length, Padding, Theme,
     font::{self, Weight},
     theme::Palette,
-    widget::{Button, Column, Container, Row, keyed::column, span, text::Span, text_editor},
+    widget::{
+        Button, Column, Container, MouseArea, Row, keyed::column, span, text::Span, text_editor,
+    },
 };
 use url::Url;
 
@@ -48,17 +50,6 @@ impl MarkdownViewer {
             let mut headers: Vec<Vec<Span<super::Message>>> = vec![];
             let mut rows: Vec<TableRow> = vec![];
             let mut list_level = 0;
-
-            let form_line = |mut spans: Vec<Span<'a, super::Message>>,
-                             list_level: usize|
-             -> Element<'a, super::Message> {
-                if list_level > 0 {
-                    spans.insert(0, span("- "));
-                    spans.insert(0, span("  ".repeat(list_level)));
-                }
-
-                rich_text(spans.clone()).into()
-            };
 
             let actions = self.view_md_item(
                 item,
@@ -106,13 +97,13 @@ impl MarkdownViewer {
 
                 let columns = headers.into_iter().enumerate().map(|(i, header)| {
                     crate::overrides::table::column(
-                        form_line(header, list_level),
+                        self.form_line(header, list_level),
                         move |row: TableRow| {
                             if row.cells.is_empty() {
-                                return form_line(vec![], list_level);
+                                return self.form_line(vec![], list_level);
                             }
 
-                            form_line(row.cells[i].clone(), list_level)
+                            self.form_line(row.cells[i].clone(), list_level)
                         },
                     )
                     .width(Length::Fill)
@@ -124,12 +115,59 @@ impl MarkdownViewer {
                 column = column.push(table);
                 in_table = false;
             } else {
-                column = column.push(form_line(rich_spans.clone(), list_level));
+                column = column.push(self.form_line(rich_spans.clone(), list_level));
                 rich_spans.clear();
             }
         }
 
-        column.into()
+        MouseArea::new(column)
+            .on_enter(super::Message::OnEnterMouse)
+            .on_exit(super::Message::OnLeaveMouse)
+            .into()
+    }
+
+    fn form_line<'a>(
+        &self,
+        mut spans: Vec<Span<'a, super::Message>>,
+        list_level: usize,
+    ) -> Element<'a, super::Message> {
+        if list_level > 0 {
+            spans.insert(0, span("- "));
+            spans.insert(0, span("  ".repeat(list_level)));
+        }
+
+        if self.is_hovered {
+            let mut new_spans: Vec<Span<super::Message>> = vec![];
+            for span in spans {
+                for char in span.text.chars() {
+                    let mut char_span = iced::widget::span(char.to_string());
+
+                    if let Some(size) = span.size {
+                        char_span = char_span.size(size);
+                    }
+
+                    if let Some(font) = span.font {
+                        char_span = char_span.font(font);
+                    }
+
+                    if let Some(color) = span.color {
+                        char_span = char_span.color(color);
+                    }
+
+                    if span.underline {
+                        char_span = char_span.underline(true);
+                    }
+
+                    char_span = char_span.color(Color::from_rgb(0.0, 1.0, 0.0));
+
+                    new_spans.push(char_span);
+                }
+            }
+
+            rich_text(new_spans).into()
+        } else {
+            rich_text(spans).into()
+        }
     }
 
     fn level_to_text_size(level: u16) -> u16 {
@@ -208,9 +246,9 @@ impl MarkdownViewer {
                     font
                 });
 
-
+                span = span.underline(state.heading_level > 0);
+                span = span.color(Color::WHITE);
                 if state.heading_level > 0 {
-                    span = span.underline(true);
                     span = span.color(self.config.heading_color);
                 }
 

@@ -19,6 +19,9 @@ use crate::{
 pub enum Message {
     Update(String),
 
+    OnEnterMouse,
+    OnLeaveMouse,
+
     StartSelection(usize),
     EndSelection(usize),
 
@@ -106,11 +109,11 @@ pub enum MdItemVariant {
 }
 
 #[derive(Clone)]
-pub struct StyleConfig {
+pub struct MarkdownViewerConfig {
     pub heading_color: Color,
 }
 
-impl Default for StyleConfig {
+impl Default for MarkdownViewerConfig {
     fn default() -> Self {
         Self {
             heading_color: dark_theme_pallete().text,
@@ -121,8 +124,8 @@ impl Default for StyleConfig {
 pub struct MarkdownViewer {
     pub(super) original: String,
     pub(super) md_items: Vec<MdItem>,
-
-    pub(super) config: StyleConfig,
+    pub(super) config: MarkdownViewerConfig,
+    pub(super) is_hovered: bool,
 }
 
 impl Clone for MarkdownViewer {
@@ -131,7 +134,7 @@ impl Clone for MarkdownViewer {
         Self {
             original: orig_clone,
             md_items: self.md_items.clone(),
-
+            is_hovered: self.is_hovered,
             config: self.config.clone(),
         }
     }
@@ -147,7 +150,7 @@ impl Debug for MarkdownViewer {
 }
 
 impl MarkdownViewer {
-    pub fn new(original: &str, config: StyleConfig) -> (Self, iced::Task<Message>) {
+    pub fn new(original: &str, config: MarkdownViewerConfig) -> (Self, iced::Task<Message>) {
         let mut tasks = vec![];
 
         tasks.push(Task::done(Message::Update(original.to_string())));
@@ -156,7 +159,7 @@ impl MarkdownViewer {
             Self {
                 original: "".to_string(),
                 md_items: vec![],
-                
+                is_hovered: false,
                 config,
             },
             iced::Task::batch(tasks),

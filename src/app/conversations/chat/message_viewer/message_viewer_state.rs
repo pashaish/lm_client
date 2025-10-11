@@ -4,7 +4,7 @@ use framework::{
 };
 use iced::widget::{text_editor};
 
-use crate::{app::common::markdown_viewer::{self, MarkdownViewer, StyleConfig}, theme::dark_theme::dark_theme_pallete};
+use crate::{app::common::markdown_viewer::{self, MarkdownViewer, MarkdownViewerConfig}, theme::dark_theme::dark_theme_pallete};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -108,8 +108,8 @@ impl MessageViewer {
     }
 }
 
-fn md_style_config(dto: &MessageDTO) -> StyleConfig {
-    StyleConfig {
+fn md_style_config(dto: &MessageDTO) -> MarkdownViewerConfig {
+    MarkdownViewerConfig {
         heading_color: if dto.role == RoleType::User {
             dark_theme_pallete().text
         } else {
