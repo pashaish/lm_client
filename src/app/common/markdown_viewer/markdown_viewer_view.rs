@@ -1,5 +1,5 @@
 use iced::{
-    Element, Font, Length, Padding, Theme, font, theme::Palette, widget::{Button, Column, Row, button::Style, keyed::column, span, text::Span, text_editor}
+    Border, Element, Font, Length, Padding, Theme, font, theme::Palette, widget::{Button, Column, Container, Row, keyed::column, span, text::Span, text_editor}
 };
 use url::Url;
 
@@ -15,6 +15,7 @@ pub(super) struct ViewContext {
     pub text_size: u16,
 }
 
+#[derive(Debug)]
 enum RenderAction<'a> {
     Span { content: Span<'a, super::Message> },
     StartTable { columns_count: usize },
@@ -28,7 +29,6 @@ impl MarkdownViewer {
 
         let mut rich_spans: Vec<Span<super::Message>> = vec![];
 
-        let mut columns_count = 0;
         let mut current_table_row = Row::new();
         let mut current_table_cell = Column::new();
         let mut in_table = false;
@@ -44,23 +44,32 @@ impl MarkdownViewer {
                     RenderAction::Span { content } => {
                         rich_spans.push(content);
                     }
-                    RenderAction::StartTable { columns_count: count } => {
-                        columns_count = count;
+                    RenderAction::StartTable { columns_count: _ } => {
                         in_table = true;
-                        log::error!("START_TABLE")
                     }
                     RenderAction::TableNextCell => {
-                        current_table_cell = current_table_cell.push(rich_text(rich_spans.clone()));
+                        current_table_cell = current_table_cell
+                            .push(rich_text(rich_spans.clone()))
+                            .width(Length::Fill);
+
                         rich_spans.clear();
 
-                        current_table_row = current_table_row.push(current_table_cell);
-                        current_table_cell = Column::new().width(Length::Fixed(70.0));
-                        log::error!("ADD_CELL")
+                        current_table_row = current_table_row.push(
+                            Container::new(
+                                current_table_cell
+                            )
+                            .style(|theme: &Theme| {
+                                iced::widget::container::Style {
+                                    border: Border { color: theme.palette().danger, width: 1.0, ..Default::default() },
+                                    ..iced::widget::container::Style::default()
+                                }
+                            }),
+                        );
+                        current_table_cell = Column::new();
                     },
                     RenderAction::TableNextRow => {
                         column = column.push(current_table_row);
                         current_table_row = Row::new();
-                        log::error!("ADD_ROW")
                     },
                 }
             }
@@ -88,17 +97,18 @@ impl MarkdownViewer {
                 let mut result = vec![];
 
                 result.push(RenderAction::StartTable { columns_count: cells.len() });
-
-                for row in cells {
-                    result.push(RenderAction::TableNextRow);
-
-                    for cell in row {
-                        result.push(RenderAction::TableNextCell);
-
-                        result.extend(self.view_md_item(cell, state));
-                    }
-                }
                 
+                for row in cells {
+                    
+                    for cell in row {
+                        result.extend(self.view_md_item(cell, state));
+                        result.push(RenderAction::TableNextCell);
+                    }
+                    result.push(RenderAction::TableNextRow);
+                }
+
+                log::debug!("Table cells: {:#?}", result);
+
                 result
             }
             MdItemVarian::Chunks { items } => {
