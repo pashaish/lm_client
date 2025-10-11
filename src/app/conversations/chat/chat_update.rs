@@ -18,7 +18,7 @@ use iced::{
 };
 
 const BATCH_SIZE: usize = 8;
-const INITIAL_BATCH_SIZE: usize = 64;
+const INITIAL_BATCH_SIZE: usize = 8;
 
 impl Chat {
     pub fn update(&mut self, ctx: &mut Context, message: super::Message) -> Task<super::Message> {
