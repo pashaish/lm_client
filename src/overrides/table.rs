@@ -243,6 +243,8 @@ where
         let columns = self.columns.len();
         let rows = self.cells.len() / columns;
 
+        log::debug!("Table layout: {columns} columns, {rows} rows");
+
         let limits = limits.width(self.width).height(self.height);
         let available = limits.max();
         let table_fluid = self.width.fluid();

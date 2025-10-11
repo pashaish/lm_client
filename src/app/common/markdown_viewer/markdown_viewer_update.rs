@@ -17,6 +17,7 @@ pub(super) struct ParsingState {
     pub(super) emphasis: bool,
 
     pub(super) in_table: bool,
+    pub(super) in_table_header: bool,
     pub(super) table: Vec<Vec<MdItem>>,
 }
 
@@ -39,6 +40,7 @@ impl MarkdownViewer {
                     strong: false,
                     in_table: false,
                     table: Vec::new(),
+                    in_table_header: false,
                 };
 
                 let mut new_md_items = Vec::new();
@@ -98,6 +100,7 @@ impl MarkdownViewer {
                     });
                 }
                 pulldown_cmark::Tag::TableHead => {
+                    parsing_state.in_table_header = true;
                     parsing_state.table.push(vec![]);
                 }
                 _ => {}
@@ -130,6 +133,9 @@ impl MarkdownViewer {
                     });
 
                     parsing_state.table.clear();
+                }
+                pulldown_cmark::TagEnd::TableHead => {
+                    parsing_state.in_table_header = false;
                 }
                 _ => {}
             },
