@@ -33,8 +33,6 @@ pub struct MdItem {
 
 impl MdItem {
     pub fn push_text(&mut self, str: &str) {
-        log::debug!("STR: {str}, self: {self:?}");
-
         let text_item = MdItem {
             variant: MdItemVarian::Text {
                 content: str.to_string(),
@@ -42,18 +40,31 @@ impl MdItem {
             is_completed: true,
         };
 
+        self.push(&text_item);
+    }
+
+    pub fn push(&mut self, item: &MdItem) {
         match &mut self.variant {
-            MdItemVarian::Heading { content, level } => {
-                content.push(text_item);
+            MdItemVarian::Emphasis { content } |
+            MdItemVarian::Strong { content } |
+            MdItemVarian::Heading { content, .. } => {
+                content.push(item.clone());
             }
             MdItemVarian::Table { cells } => {
-                panic!("Wrong Insert")
+                if let Some(last_row) = cells.last_mut() {
+                    last_row.push(item.clone());
+                } else {
+                    cells.push(vec![item.clone()]);
+                }
             }
-            MdItemVarian::Text { content } => {
+            MdItemVarian::Text { content: _ } => {
                 panic!("Wrong Insert")
             }
             MdItemVarian::Chunks { items } => {
-                items.push(text_item);
+                items.push(item.clone());
+            }
+            MdItemVarian::Item { content } => {
+                content.push(item.clone());
             }
         }
     }
@@ -64,6 +75,9 @@ impl MdItem {
             MdItemVarian::Table { cells } => cells.last_mut().and_then(|l| l.last_mut()),
             MdItemVarian::Text { content } => None,
             MdItemVarian::Chunks { items } => items.last_mut(),
+            MdItemVarian::Strong { content } => content.last_mut(),
+            MdItemVarian::Emphasis { content } => content.last_mut(),
+            MdItemVarian::Item { content } => content.last_mut(),
         }
     }
 
@@ -73,6 +87,9 @@ impl MdItem {
             MdItemVarian::Table { cells } => cells.last().and_then(|l| l.last()),
             MdItemVarian::Text { content } => None,
             MdItemVarian::Chunks { items } => items.last(),
+            MdItemVarian::Strong { content } => content.last(),
+            MdItemVarian::Emphasis { content } => content.last(),
+            MdItemVarian::Item { content } => content.last(),
         }
     }
 }
@@ -83,6 +100,9 @@ pub enum MdItemVarian {
     Text { content: String },
     Heading { content: Vec<MdItem>, level: u16 },
     Table { cells: Vec<Vec<MdItem>> },
+    Strong { content: Vec<MdItem> },
+    Emphasis { content: Vec<MdItem> },
+    Item { content: Vec<MdItem> },
 }
 
 pub struct MarkdownViewer {
