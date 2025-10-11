@@ -27,14 +27,14 @@ pub enum Message {
 
 #[derive(Debug, Clone)]
 pub struct MdItem {
-    pub variant: MdItemVarian,
+    pub variant: MdItemVariant,
     pub is_completed: bool,
 }
 
 impl MdItem {
     pub fn push_text(&mut self, str: &str) {
         let text_item = MdItem {
-            variant: MdItemVarian::Text {
+            variant: MdItemVariant::Text {
                 content: str.to_string(),
             },
             is_completed: true,
@@ -45,25 +45,25 @@ impl MdItem {
 
     pub fn push(&mut self, item: &MdItem) {
         match &mut self.variant {
-            MdItemVarian::Emphasis { content } |
-            MdItemVarian::Strong { content } |
-            MdItemVarian::Heading { content, .. } => {
+            MdItemVariant::Emphasis { content } |
+            MdItemVariant::Strong { content } |
+            MdItemVariant::Heading { content, .. } => {
                 content.push(item.clone());
             }
-            MdItemVarian::Table { cells } => {
+            MdItemVariant::Table { cells } => {
                 if let Some(last_row) = cells.last_mut() {
                     last_row.push(item.clone());
                 } else {
                     cells.push(vec![item.clone()]);
                 }
             }
-            MdItemVarian::Text { content: _ } => {
+            MdItemVariant::Text { content: _ } => {
                 panic!("Wrong Insert")
             }
-            MdItemVarian::Chunks { items } => {
+            MdItemVariant::Chunks { items } => {
                 items.push(item.clone());
             }
-            MdItemVarian::Item { content } => {
+            MdItemVariant::Item { content } => {
                 content.push(item.clone());
             }
         }
@@ -71,31 +71,31 @@ impl MdItem {
 
     pub fn last_child_mut(&mut self) -> Option<&mut MdItem> {
         match &mut self.variant {
-            MdItemVarian::Heading { content, level } => content.last_mut(),
-            MdItemVarian::Table { cells } => cells.last_mut().and_then(|l| l.last_mut()),
-            MdItemVarian::Text { content } => None,
-            MdItemVarian::Chunks { items } => items.last_mut(),
-            MdItemVarian::Strong { content } => content.last_mut(),
-            MdItemVarian::Emphasis { content } => content.last_mut(),
-            MdItemVarian::Item { content } => content.last_mut(),
+            MdItemVariant::Heading { content, level } => content.last_mut(),
+            MdItemVariant::Table { cells } => cells.last_mut().and_then(|l| l.last_mut()),
+            MdItemVariant::Text { content } => None,
+            MdItemVariant::Chunks { items } => items.last_mut(),
+            MdItemVariant::Strong { content } => content.last_mut(),
+            MdItemVariant::Emphasis { content } => content.last_mut(),
+            MdItemVariant::Item { content } => content.last_mut(),
         }
     }
 
     pub fn last_child(&self) -> Option<&MdItem> {
         match &self.variant {
-            MdItemVarian::Heading { content, level } => content.last(),
-            MdItemVarian::Table { cells } => cells.last().and_then(|l| l.last()),
-            MdItemVarian::Text { content } => None,
-            MdItemVarian::Chunks { items } => items.last(),
-            MdItemVarian::Strong { content } => content.last(),
-            MdItemVarian::Emphasis { content } => content.last(),
-            MdItemVarian::Item { content } => content.last(),
+            MdItemVariant::Heading { content, level } => content.last(),
+            MdItemVariant::Table { cells } => cells.last().and_then(|l| l.last()),
+            MdItemVariant::Text { content } => None,
+            MdItemVariant::Chunks { items } => items.last(),
+            MdItemVariant::Strong { content } => content.last(),
+            MdItemVariant::Emphasis { content } => content.last(),
+            MdItemVariant::Item { content } => content.last(),
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub enum MdItemVarian {
+pub enum MdItemVariant {
     Chunks { items: Vec<MdItem> },
     Text { content: String },
     Heading { content: Vec<MdItem>, level: u16 },

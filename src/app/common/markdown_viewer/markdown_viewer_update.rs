@@ -1,6 +1,6 @@
 use crate::{
     app::common::markdown_viewer::{
-        markdown_viewer_state::{MdItem, MdItemVarian},
+        markdown_viewer_state::{MdItem, MdItemVariant},
         markdown_viewer_view::BASE_TEXT_SIZE,
     },
     overrides::table,
@@ -72,7 +72,7 @@ impl MarkdownViewer {
                 pulldown_cmark::Tag::Heading { level, .. } => {
                     Self::push_item(parsing_state, container, &MdItem {
                         is_completed: false,
-                        variant: MdItemVarian::Heading {
+                        variant: MdItemVariant::Heading {
                             level: Self::heading_level_to_u16(level),
                             content: vec![],
                         },
@@ -81,7 +81,7 @@ impl MarkdownViewer {
                 pulldown_cmark::Tag::Item => {
                     Self::push_item(parsing_state, container, &MdItem {
                         is_completed: false,
-                        variant: MdItemVarian::Item { content: vec![] },
+                        variant: MdItemVariant::Item { content: vec![] },
                     });
                 }
                 pulldown_cmark::Tag::Table(_table) => {
@@ -92,7 +92,7 @@ impl MarkdownViewer {
                 }
                 pulldown_cmark::Tag::TableCell => {
                     parsing_state.table.last_mut().unwrap().push(MdItem {
-                        variant: MdItemVarian::Chunks { items: vec![] },
+                        variant: MdItemVariant::Chunks { items: vec![] },
                         is_completed: false,
                     });
                 }
@@ -102,19 +102,19 @@ impl MarkdownViewer {
                 }
                 pulldown_cmark::Tag::Paragraph => {
                     Self::push_item(parsing_state, container, &MdItem {
-                        variant: MdItemVarian::Chunks { items: vec![] },
+                        variant: MdItemVariant::Chunks { items: vec![] },
                         is_completed: false,
                     });
                 }
                 pulldown_cmark::Tag::Strong => {
                     Self::push_item(parsing_state, container, &MdItem {
-                        variant: MdItemVarian::Strong { content: vec![] },
+                        variant: MdItemVariant::Strong { content: vec![] },
                         is_completed: false,
                     });
                 }
                 pulldown_cmark::Tag::Emphasis => {
                     Self::push_item(parsing_state, container, &MdItem {
-                        variant: MdItemVarian::Emphasis { content: vec![] },
+                        variant: MdItemVariant::Emphasis { content: vec![] },
                         is_completed: false,
                     });
                 }
@@ -127,7 +127,7 @@ impl MarkdownViewer {
 
                 Self::push_item(parsing_state, container, &MdItem {
                     is_completed: true,
-                    variant: MdItemVarian::Text { content: text.clone() },
+                    variant: MdItemVariant::Text { content: text.clone() },
                 });
             }
             pulldown_cmark::Event::End(tag) => match tag {
@@ -135,7 +135,7 @@ impl MarkdownViewer {
                     parsing_state.in_table = false;
 
                     Self::push_item(parsing_state, container, &MdItem {
-                        variant: MdItemVarian::Table {
+                        variant: MdItemVariant::Table {
                             cells: parsing_state.table.clone(),
                         },
                         is_completed: true,

@@ -7,7 +7,7 @@ use iced::{
 use url::Url;
 
 use crate::{
-    app::common::markdown_viewer::markdown_viewer_state::{MdItem, MdItemVarian},
+    app::common::markdown_viewer::markdown_viewer_state::{MdItem, MdItemVariant},
     overrides::{self, rich::rich_text},
     theme::dark_theme::{self, dark_theme, dark_theme_pallete},
 };
@@ -146,7 +146,7 @@ impl MarkdownViewer {
 
     fn view_md_item(&self, item: &MdItem, state: &ViewContext) -> Vec<RenderAction> {
         match &item.variant {
-            MdItemVarian::Heading { content, level } => self.nesting(
+            MdItemVariant::Heading { content, level } => self.nesting(
                 content,
                 &ViewContext {
                     text_size: Self::level_to_text_size(*level),
@@ -154,7 +154,7 @@ impl MarkdownViewer {
                     ..(*state)
                 },
             ),
-            MdItemVarian::Item { content } => {
+            MdItemVariant::Item { content } => {
                 let mut result = vec![];
 
                 result.push(RenderAction::ListLevel {
@@ -171,7 +171,7 @@ impl MarkdownViewer {
 
                 result
             }
-            MdItemVarian::Table { cells } => {
+            MdItemVariant::Table { cells } => {
                 let mut result = vec![];
 
                 result.push(RenderAction::StartTable);
@@ -188,8 +188,8 @@ impl MarkdownViewer {
 
                 result
             }
-            MdItemVarian::Chunks { items } => self.nesting(items, state),
-            MdItemVarian::Text { content } => {
+            MdItemVariant::Chunks { items } => self.nesting(items, state),
+            MdItemVariant::Text { content } => {
                 let mut result = vec![];
 
                 let content = content.clone();
@@ -220,14 +220,14 @@ impl MarkdownViewer {
 
                 return result;
             }
-            MdItemVarian::Strong { content } => self.nesting(
+            MdItemVariant::Strong { content } => self.nesting(
                 content,
                 &ViewContext {
                     bold: true,
                     ..(*state)
                 },
             ),
-            MdItemVarian::Emphasis { content } => self.nesting(
+            MdItemVariant::Emphasis { content } => self.nesting(
                 content,
                 &ViewContext {
                     italic: true,
