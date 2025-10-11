@@ -1,7 +1,11 @@
-use iced::{Element, Font, Padding, Theme, font, theme::Palette, widget::{Button, Column, button::Style, span, text::Span, text_editor}};
+use iced::{
+    Element, Font, Length, Padding, Theme, font, theme::Palette, widget::{Button, Column, Row, button::Style, keyed::column, span, text::Span, text_editor}
+};
 use url::Url;
 
-use crate::{app::common::markdown_viewer::markdown_viewer_state::MdSpan, overrides::{self, rich::rich_text}, theme::dark_theme::{self, dark_theme, dark_theme_pallete}};
+use crate::{
+    app::common::markdown_viewer::markdown_viewer_state::{MdItem, MdItemVarian}, overrides::{self, rich::rich_text}, theme::dark_theme::{self, dark_theme, dark_theme_pallete}
+};
 
 use super::MarkdownViewer;
 
@@ -12,102 +16,111 @@ pub(super) struct ViewContext {
 }
 
 enum RenderAction<'a> {
-    Push(Span<'a, super::Message>),
-    NewLine,
-
-    TableHeader { columns: usize },
-    TableCellPush,
-    TableEnd,
+    Span { content: Span<'a, super::Message> },
+    StartTable { columns_count: usize },
+    TableNextRow,
+    TableNextCell,
 }
 
 impl MarkdownViewer {
     pub fn view(&self) -> Element<super::Message> {
-        let mut column = iced::widget::Column::new()
-            .padding(10)
-            .spacing(10);
+        let mut column = iced::widget::Column::new().padding(10).spacing(10);
 
-        let mut current_line = Vec::new();
+        let mut rich_spans: Vec<Span<super::Message>> = vec![];
 
-        for span in &self.md_spans {
-            match self.render_span(span) {
-                RenderAction::Push(element) => {
-                    current_line.push(element);
-                },
-                RenderAction::NewLine => {
-                    if current_line.is_empty() {
-                        continue;
+        let mut columns_count = 0;
+        let mut current_table_row = Row::new();
+        let mut current_table_cell = Column::new();
+        let mut in_table = false;
+
+        for item in &self.md_items {
+            let actions = self.view_md_item(item, &ViewContext {
+                text_size: BASE_TEXT_SIZE
+            });
+
+
+            for action in actions {
+                match action {
+                    RenderAction::Span { content } => {
+                        rich_spans.push(content);
                     }
+                    RenderAction::StartTable { columns_count: count } => {
+                        columns_count = count;
+                        in_table = true;
+                        log::error!("START_TABLE")
+                    }
+                    RenderAction::TableNextCell => {
+                        current_table_cell = current_table_cell.push(rich_text(rich_spans.clone()));
+                        rich_spans.clear();
 
-                    column = column.push(rich_text(current_line));
-                    current_line = Vec::new();
+                        current_table_row = current_table_row.push(current_table_cell);
+                        current_table_cell = Column::new().width(Length::Fixed(70.0));
+                        log::error!("ADD_CELL")
+                    },
+                    RenderAction::TableNextRow => {
+                        column = column.push(current_table_row);
+                        current_table_row = Row::new();
+                        log::error!("ADD_ROW")
+                    },
                 }
-                RenderAction::TableHeader { columns } => {
+            }
 
-                }
- 
-                RenderAction::TableCellPush => {
-
-                },
-                RenderAction::TableEnd => {
-
-                },
+            if !in_table {
+                column = column.push(rich_text(rich_spans.clone()));
+                rich_spans.clear();
             }
         }
-
-        column = column.push(rich_text(current_line));
 
         column.into()
     }
 
-    fn render_span(
-        &self,
-        span: &MdSpan,
-    ) -> RenderAction {
-        match span {
-            MdSpan::Text { content, heading_level, strong, emphasis } => {
-                let text_size = match heading_level {
-                    Some(pulldown_cmark::HeadingLevel::H1) => BASE_TEXT_SIZE + 24,
-                    Some(pulldown_cmark::HeadingLevel::H2) => BASE_TEXT_SIZE + 20,
-                    Some(pulldown_cmark::HeadingLevel::H3) => BASE_TEXT_SIZE + 16,
-                    Some(pulldown_cmark::HeadingLevel::H4) => BASE_TEXT_SIZE + 12,
-                    Some(pulldown_cmark::HeadingLevel::H5) => BASE_TEXT_SIZE + 8,
-                    Some(pulldown_cmark::HeadingLevel::H6) => BASE_TEXT_SIZE + 4,
-                    None => BASE_TEXT_SIZE,
-                };
-
-                let mut text = iced::widget::span(content.clone())
-                    .size(text_size);
-
-                let mut font = Font::default(); 
-
-                if *strong {
-                    font.weight = font::Weight::ExtraBold;
+    fn view_md_item(&self, item: &MdItem, state: &ViewContext) -> Vec<RenderAction> {
+        match &item.variant {
+            MdItemVarian::Heading { content, level } => {
+                let mut result = vec![];
+                for child in content {
+                    result.extend(self.view_md_item(child, &ViewContext { text_size: state.text_size * (6 - level) }));
                 }
 
-                if *emphasis {
-                    font.style = font::Style::Italic;
+                result
+            }
+            MdItemVarian::Table { cells } => {
+                let mut result = vec![];
+
+                result.push(RenderAction::StartTable { columns_count: cells.len() });
+
+                for row in cells {
+                    result.push(RenderAction::TableNextRow);
+
+                    for cell in row {
+                        result.push(RenderAction::TableNextCell);
+
+                        result.extend(self.view_md_item(cell, state));
+                    }
+                }
+                
+                result
+            }
+            MdItemVarian::Chunks { items } => {
+                let mut result = vec![];
+                for child in items {
+                    result.extend(self.view_md_item(child, state));
                 }
 
-                text = text.font(font);
+                result
+            }
+            MdItemVarian::Text { content } => {
+                let mut result = vec![];
 
-                if heading_level.is_some() {
-                    text = text.underline(true);
-                    text = text.color(dark_theme_pallete().primary);
-                }
+                result.push(
+                    RenderAction::Span {
+                        content: iced::widget::span(content.clone())
+                            .size(state.text_size)
+                            .into()
+                    }
+                );
 
-                RenderAction::Push(text.into())
-            }
-            MdSpan::NewLine => {
-                RenderAction::NewLine
-            }
-            MdSpan::TableHeader { columns } => {
-                RenderAction::TableHeader { columns: *columns }
-            }
-            MdSpan::TableCellPush => {
-                RenderAction::TableCellPush
-            }
-            MdSpan::TableEnd => {
-                RenderAction::TableEnd
+                return result;
             }
         }
     }
