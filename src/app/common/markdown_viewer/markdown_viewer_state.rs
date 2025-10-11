@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use iced::{Element, Task, widget::text_editor};
+use iced::{Color, Element, Task, widget::text_editor};
 use pulldown_cmark::HeadingLevel;
 use url::Url;
 
@@ -12,7 +12,7 @@ use crate::{
         markdown_viewer_update::ParsingState,
         markdown_viewer_view::{BASE_TEXT_SIZE, ViewContext},
     },
-    overrides,
+    overrides, theme::dark_theme::dark_theme_pallete,
 };
 
 #[derive(Debug, Clone)]
@@ -105,9 +105,24 @@ pub enum MdItemVarian {
     Item { content: Vec<MdItem> },
 }
 
+#[derive(Clone)]
+pub struct StyleConfig {
+    pub heading_color: Color,
+}
+
+impl Default for StyleConfig {
+    fn default() -> Self {
+        Self {
+            heading_color: dark_theme_pallete().text,
+        }
+    }
+}
+
 pub struct MarkdownViewer {
     pub(super) original: String,
     pub(super) md_items: Vec<MdItem>,
+
+    pub(super) config: StyleConfig,
 }
 
 impl Clone for MarkdownViewer {
@@ -116,6 +131,8 @@ impl Clone for MarkdownViewer {
         Self {
             original: orig_clone,
             md_items: self.md_items.clone(),
+
+            config: self.config.clone(),
         }
     }
 }
@@ -130,7 +147,7 @@ impl Debug for MarkdownViewer {
 }
 
 impl MarkdownViewer {
-    pub fn new(original: &str) -> (Self, iced::Task<Message>) {
+    pub fn new(original: &str, config: StyleConfig) -> (Self, iced::Task<Message>) {
         let mut tasks = vec![];
 
         tasks.push(Task::done(Message::Update(original.to_string())));
@@ -139,6 +156,8 @@ impl MarkdownViewer {
             Self {
                 original: "".to_string(),
                 md_items: vec![],
+                
+                config,
             },
             iced::Task::batch(tasks),
         )

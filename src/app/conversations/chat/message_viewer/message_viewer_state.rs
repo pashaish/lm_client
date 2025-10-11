@@ -4,7 +4,7 @@ use framework::{
 };
 use iced::widget::{text_editor};
 
-use crate::app::common::markdown_viewer::{self, MarkdownViewer};
+use crate::{app::common::markdown_viewer::{self, MarkdownViewer, StyleConfig}, theme::dark_theme::dark_theme_pallete};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -58,16 +58,16 @@ impl MessageViewer {
         (
             Self {
                 conversations_service: conversation_service,
-                message_dto,
+                message_dto: message_dto.clone(),
                 content: take_component(
                     &mut tasks,
                     Message::ContentUpdate,
-                    MarkdownViewer::new(&initial_content)
+                    MarkdownViewer::new(&initial_content, md_style_config(&message_dto))
                 ),
                 reasoning: take_component(
                     &mut tasks,
                     Message::ReasoningUpdate,
-                    MarkdownViewer::new(&initial_reasoning)
+                    MarkdownViewer::new(&initial_reasoning, md_style_config(&message_dto))
                 ),
                 reasoning_expanded: false,
             },
@@ -105,5 +105,15 @@ impl MessageViewer {
 
     pub fn is_editing(&self, state: &SharedState) -> bool {
         state.editing == Some(self.message_dto.id)
+    }
+}
+
+fn md_style_config(dto: &MessageDTO) -> StyleConfig {
+    StyleConfig {
+        heading_color: if dto.role == RoleType::User {
+            dark_theme_pallete().text
+        } else {
+            dark_theme_pallete().primary
+        }
     }
 }

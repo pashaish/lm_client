@@ -1,5 +1,6 @@
 use iced::{
-    Border, Element, Font, Length, Padding, Theme, font::{self, Weight},
+    Border, Element, Font, Length, Padding, Theme,
+    font::{self, Weight},
     theme::Palette,
     widget::{Button, Column, Container, Row, keyed::column, span, text::Span, text_editor},
 };
@@ -20,6 +21,7 @@ pub(super) struct ViewContext {
     pub bold: bool,
     pub italic: bool,
     pub list_level: usize,
+    pub heading_level: u16,
 }
 
 #[derive(Clone)]
@@ -47,12 +49,9 @@ impl MarkdownViewer {
             let mut rows: Vec<TableRow> = vec![];
             let mut list_level = 0;
 
-            let form_line = |
-                mut spans: Vec<Span<'a, super::Message>>,
-                list_level: usize,
-            | -> Element<'a, super::Message> {
-                log::debug!("List level: {list_level}");
-
+            let form_line = |mut spans: Vec<Span<'a, super::Message>>,
+                             list_level: usize|
+             -> Element<'a, super::Message> {
                 if list_level > 0 {
                     spans.insert(0, span("- "));
                     spans.insert(0, span("  ".repeat(list_level)));
@@ -68,6 +67,7 @@ impl MarkdownViewer {
                     bold: false,
                     italic: false,
                     list_level: 0,
+                    heading_level: 0,
                 },
             );
 
@@ -75,7 +75,7 @@ impl MarkdownViewer {
                 match action {
                     RenderAction::ListLevel { level } => {
                         list_level = level;
-                    },
+                    }
                     RenderAction::Span { content } => {
                         rich_spans.push(content);
                     }
@@ -98,14 +98,24 @@ impl MarkdownViewer {
             }
 
             if in_table {
-                let columns = headers.into_iter().enumerate().map(|(i, header)| {
-                    crate::overrides::table::column(rich_text(header), move |row: TableRow| {
-                        if row.cells.is_empty() {
-                            return rich_text(vec![]);
-                        }
+                if let Some(last_row) = rows.last() {
+                    if last_row.cells.is_empty() {
+                        rows.pop();
+                    }
+                }
 
-                        rich_text(row.cells[i].clone())
-                    })
+                let columns = headers.into_iter().enumerate().map(|(i, header)| {
+                    crate::overrides::table::column(
+                        form_line(header, list_level),
+                        move |row: TableRow| {
+                            if row.cells.is_empty() {
+                                return form_line(vec![], list_level);
+                            }
+
+                            form_line(row.cells[i].clone(), list_level)
+                        },
+                    )
+                    .width(Length::Fill)
                 });
 
                 let table: overrides::table::Table<super::Message> =
@@ -114,7 +124,6 @@ impl MarkdownViewer {
                 column = column.push(table);
                 in_table = false;
             } else {
-                // column = column.push(rich_text(rich_spans.clone()));
                 column = column.push(form_line(rich_spans.clone(), list_level));
                 rich_spans.clear();
             }
@@ -123,20 +132,35 @@ impl MarkdownViewer {
         column.into()
     }
 
+    fn level_to_text_size(level: u16) -> u16 {
+        match level {
+            1 => (BASE_TEXT_SIZE as f32 * 2.5) as u16,
+            2 => (BASE_TEXT_SIZE as f32 * 2.0) as u16,
+            3 => (BASE_TEXT_SIZE as f32 * 1.5) as u16,
+            4 => (BASE_TEXT_SIZE as f32 * 1.3) as u16,
+            5 => (BASE_TEXT_SIZE as f32 * 1.1) as u16,
+            6 => (BASE_TEXT_SIZE as f32 * 1.0) as u16,
+            _ => panic!("Invalid heading level"),
+        }
+    }
+
     fn view_md_item(&self, item: &MdItem, state: &ViewContext) -> Vec<RenderAction> {
         match &item.variant {
             MdItemVarian::Heading { content, level } => self.nesting(
                 content,
                 &ViewContext {
-                    text_size: state.text_size * (6 - level),
+                    text_size: Self::level_to_text_size(*level),
+                    heading_level: *level,
                     ..(*state)
                 },
             ),
             MdItemVarian::Item { content } => {
                 let mut result = vec![];
 
-                result.push(RenderAction::ListLevel { level: state.list_level + 1 });
-                
+                result.push(RenderAction::ListLevel {
+                    level: state.list_level + 1,
+                });
+
                 result.extend(self.nesting(
                     content,
                     &ViewContext {
@@ -168,23 +192,30 @@ impl MarkdownViewer {
             MdItemVarian::Text { content } => {
                 let mut result = vec![];
 
+                let content = content.clone();
+
+                let mut span = iced::widget::span(content).size(state.text_size).font({
+                    let mut font = Font::default();
+
+                    if state.bold {
+                        font.weight = Weight::ExtraBold;
+                    }
+
+                    if state.italic {
+                        font.style = font::Style::Italic;
+                    }
+
+                    font
+                });
+
+
+                if state.heading_level > 0 {
+                    span = span.underline(true);
+                    span = span.color(self.config.heading_color);
+                }
+
                 result.push(RenderAction::Span {
-                    content: iced::widget::span(content.clone())
-                        .size(state.text_size)
-                        .font({
-                            let mut font = Font::default();
-
-                            if state.bold {
-                                font.weight = Weight::ExtraBold;
-                            }
-
-                            if state.italic {
-                                font.style = font::Style::Italic;
-                            }
-
-                            font
-                        })
-                        .into(),
+                    content: span.into(),
                 });
 
                 return result;
