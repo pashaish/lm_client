@@ -8,6 +8,8 @@ use iced::{
     widget::{scrollable::Viewport, text_editor},
 };
 
+use crate::overrides;
+
 use super::message_viewer::{self, MessageViewer};
 
 #[derive(Debug, Clone)]
@@ -47,7 +49,6 @@ pub struct Chat {
     pub(super) chat: Option<ConversationNodeDTO>,
     pub(super) messages: HashMap<MessageID, MessageViewer>,
     pub(super) gathering_message: Option<MessageViewer>,
-    pub(super) is_loaded_all_messages: bool,
     pub(super) last_message_id: MessageID,
     pub(super) text_editor_content: text_editor::Content,
     pub(super) gathering_message_process: bool,
@@ -58,6 +59,8 @@ pub struct Chat {
     pub(super) gathering_message_aborter: Option<iced::task::Handle>,
     pub(super) is_need_generate: bool,
     pub(super) sorted_messages_ids: Vec<MessageID>,
+
+    pub(super) list_messages_content: overrides::list::Content<MessageViewer>
 }
 
 impl Chat {
@@ -76,13 +79,13 @@ impl Chat {
                 chat: None,
                 sorted_messages_ids: vec![],
                 messages: HashMap::new(),
-                is_loaded_all_messages: true,
                 last_message_id: 0,
                 text_editor_content: text_editor::Content::new(),
                 gathering_message: None,
                 gathering_message_process: false,
                 shared_messages_state: message_viewer::SharedState::default(),
                 loading_file: false,
+                list_messages_content: overrides::list::Content::new(),
             },
             iced::Task::batch(tasks),
         )

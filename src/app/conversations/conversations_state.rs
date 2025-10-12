@@ -35,10 +35,12 @@ pub struct Conversations {
     // State
     pub(super) current_chat_id: Option<ConversationNodeID>,
     pub(super) panes: pane_grid::State<Pane>,
-    pub(super) settings_pane: Option<pane_grid::Pane>,
     pub(super) chat_pane: pane_grid::Pane,
     pub(super) settings_pane_ratio: f32,
-    pub(super) settings_pane_split: Option<pane_grid::Split>,
+    pub(super) settings_pane_split: pane_grid::Split,
+
+    pub(super) settings_pane: pane_grid::Pane,
+    pub(super) settings_pane_opened: bool,
 }
 
 impl Conversations {
@@ -53,24 +55,36 @@ impl Conversations {
 
         panes.resize(folders_split, 0.2);
 
+        let (settings_pane, chat_split) = panes
+            .split(
+                pane_grid::Axis::Vertical,
+                chat_pane,
+                super::conversations_state::Pane::Settings,
+            )
+            .expect("Failed to split pane");
+
+        panes.resize(chat_split, 1.0);
+
         (
             Self {
-                settings_pane_split: None,
+                settings_pane_split: chat_split,
                 settings_pane_ratio: 0.8,
                 chat_pane,
-                settings_pane: None,
+                settings_pane: settings_pane,
                 panes,
                 folders: take_component(&mut tasks, Message::Folders, Folders::new()),
                 settings: None,
                 chats: HashMap::new(),
                 current_chat_id: None,
+                settings_pane_opened: false,
             },
             iced::Task::batch(tasks),
         )
     }
 
     pub fn get_chat(&self) -> Option<&Chat> {
-        self.current_chat_id.and_then(|chat_id| self.chats.get(&chat_id))
+        self.current_chat_id
+            .and_then(|chat_id| self.chats.get(&chat_id))
     }
 
     #[allow(dead_code)]
@@ -83,6 +97,6 @@ impl Conversations {
     }
 
     pub(super) const fn settings_expanded(&self) -> bool {
-        self.settings_pane.is_some()
+        self.settings_pane_opened
     }
 }

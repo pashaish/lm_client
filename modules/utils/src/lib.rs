@@ -5,6 +5,7 @@ pub use common::*;
 pub mod notify;
 
 pub mod event_system;
+pub mod selection;
 
 mod constants;
 pub use constants::*;

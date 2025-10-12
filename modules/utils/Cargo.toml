@@ -7,6 +7,7 @@ edition = "2024"
 iced = { version = "0.13.1", features = ["tokio", "advanced"] }
 native-dialog = { version = "0.8.11", features = ["async"] }
 uuid = { version = "1.16.0", features = ["v4"] }
+unicode-segmentation = "1.12.0"
 
 types.workspace = true
 

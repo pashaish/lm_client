@@ -109,25 +109,28 @@ impl MarkdownViewer {
                     parsing_state.table.push(vec![]);
                 }
                 pulldown_cmark::Tag::Paragraph => {
+
                     Self::push_item(parsing_state, container, &MdItem {
                         variant: MdItemVariant::Chunks { items: vec![] },
                         is_completed: false,
                     });
                 }
                 pulldown_cmark::Tag::Strong => {
-                    Self::push_item(parsing_state, container, &MdItem {
-                        variant: MdItemVariant::Strong { content: vec![] },
-                        is_completed: false,
-                    });
+                        Self::push_item(parsing_state, container, &MdItem {
+                            variant: MdItemVariant::Strong { content: vec![] },
+                            is_completed: false,
+                        });
                 }
                 pulldown_cmark::Tag::Emphasis => {
-                    Self::push_item(parsing_state, container, &MdItem {
-                        variant: MdItemVariant::Emphasis { content: vec![] },
-                        is_completed: false,
+                    self.handle(move || {
+                        Self::push_item(parsing_state, container, &MdItem {
+                            variant: MdItemVariant::Emphasis { content: vec![] },
+                            is_completed: false,
+                        });
                     });
                 }
                 unknown => {
-                    log::warn!("Unknown start tag: {:#?}", unknown);
+                    // log::warn!("Unknown start tag: {:#?}", unknown);
                 }
             },
             pulldown_cmark::Event::Text(text) => {
@@ -179,6 +182,10 @@ impl MarkdownViewer {
         }
 
         true
+    }
+
+    fn handle(&mut self, cb: impl FnOnce()) {
+        cb();
     }
 
     fn push_item(state: &mut ParsingState, container: &mut Vec<MdItem>, inserting_item: &MdItem) {

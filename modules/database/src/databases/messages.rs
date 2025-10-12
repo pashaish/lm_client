@@ -167,7 +167,8 @@ impl MessagesDatabase {
              FROM messages 
              WHERE conversation_id = ? AND id < ? 
              ORDER BY id DESC
-             LIMIT ?"
+             LIMIT ?
+             "
         } else {
             "SELECT id, conversation_id, content, reasoning, timestamp, role, summary, chunks
              FROM messages 
@@ -197,6 +198,31 @@ impl MessagesDatabase {
             v.reverse();
             v
         })
+    }
+
+    pub fn get_all_messages(
+        &self,
+        conversation_id: ConversationNodeID,
+    ) -> Result<Vec<MessageDTO>, rusqlite::Error> {
+        let connection = self.connection.lock().expect("Failed to lock connection");
+
+        let mut stmt = connection.prepare(
+            "SELECT id, conversation_id, content, reasoning, timestamp, role, summary, chunks
+             FROM messages 
+             WHERE conversation_id = ? 
+             ORDER BY id ASC",
+        )?;
+
+        let row_mapper = |row: &rusqlite::Row| -> Result<MessageDTO, rusqlite::Error> {
+            let message = Self::row_to_message(row)?;
+            Ok(message)
+        };
+
+        let rows = stmt.query_map(rusqlite::params![conversation_id], row_mapper)?;
+
+        let messages: Result<Vec<MessageDTO>, rusqlite::Error> = rows.collect();
+
+        messages
     }
 
     fn message_role_from_int(role: i32) -> RoleType {

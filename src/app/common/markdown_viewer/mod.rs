@@ -6,3 +6,4 @@ mod markdown_viewer_state;
 pub use markdown_viewer_state::MarkdownViewer;
 pub use markdown_viewer_state::Message;
 pub use markdown_viewer_state::MarkdownViewerConfig;
+pub use markdown_viewer_view::MarkdownViewerRenderConfig;

@@ -174,6 +174,18 @@ impl ConversationsService {
         result
     }
 
+    pub fn get_all_messages(
+        &self,
+        conversation_id: ConversationNodeID,
+    ) -> Result<Vec<MessageDTO>, String> {
+        let state = self.state_read();
+
+        state
+            .messages_db
+            .get_all_messages(conversation_id)
+            .map_err(|e| format!("Failed to get all messages: {e}"))
+    }
+
     /// # Errors
     pub fn get_last_messages(
         &self,

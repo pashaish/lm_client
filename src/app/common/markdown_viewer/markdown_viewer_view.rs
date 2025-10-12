@@ -1,12 +1,15 @@
+use cached::proc_macro::cached;
 use iced::{
-    Border, Color, Element, Font, Length, Padding, Theme,
-    font::{self, Weight},
-    theme::Palette,
-    widget::{
-        Button, Column, Container, MouseArea, Row, keyed::column, span, text::Span, text_editor,
-    },
+    Border, Color, Element, Font, Length, Padding, Shadow, Theme, advanced::Widget, font::{self, Weight}, theme::{Palette, palette::Background}, widget::{
+        Button, Column, Container, MouseArea, Row, horizontal_space,
+        keyed::column,
+        span,
+        text::{LineHeight, Span},
+        text_editor,
+    }
 };
 use url::Url;
+use cached::SizedCache;
 
 use crate::{
     app::common::markdown_viewer::markdown_viewer_state::{MdItem, MdItemVariant},
@@ -27,31 +30,45 @@ pub(super) struct ViewContext {
 }
 
 #[derive(Clone)]
-struct TableRow<'a> {
-    pub cells: Vec<Vec<Span<'a, super::Message>>>,
+struct TableRow {
+    pub cells: Vec<Vec<RenderSpan>>,
 }
 
-enum RenderAction<'a> {
-    Span { content: Span<'a, super::Message> },
+#[derive(Clone, Default)]
+struct RenderSpan {
+    pub words: Vec<String>,
+    pub size: Option<u16>,
+    pub font: Font,
+    pub color: Option<Color>,
+    pub underline: bool,
+}
+
+enum RenderAction {
+    Span(RenderSpan),
     ListLevel { level: usize },
     StartTable,
     TableNextRow,
     TableNextCell { header: bool },
 }
 
+pub struct MarkdownViewerRenderConfig {
+    pub plain: bool,
+}
+
 impl MarkdownViewer {
-    pub fn view<'a>(&'a self) -> Element<'a, super::Message> {
-        let mut column = iced::widget::Column::new().padding(10).spacing(10);
+    pub fn view<'a>(&'a self, config: &MarkdownViewerRenderConfig) -> Element<'a, super::Message> {
+        let mut column = iced::widget::Column::new().padding(4).spacing(4);
 
         let mut in_table = false;
 
         for item in &self.md_items {
-            let mut rich_spans: Vec<Span<super::Message>> = vec![];
-            let mut headers: Vec<Vec<Span<super::Message>>> = vec![];
+            let mut rich_spans: Vec<RenderSpan> = vec![];
+            let mut headers: Vec<Vec<RenderSpan>> = vec![];
             let mut rows: Vec<TableRow> = vec![];
             let mut list_level = 0;
 
             let actions = self.view_md_item(
+                config,
                 item,
                 &ViewContext {
                     text_size: BASE_TEXT_SIZE,
@@ -67,8 +84,8 @@ impl MarkdownViewer {
                     RenderAction::ListLevel { level } => {
                         list_level = level;
                     }
-                    RenderAction::Span { content } => {
-                        rich_spans.push(content);
+                    RenderAction::Span(span) => {
+                        rich_spans.push(span);
                     }
                     RenderAction::StartTable => {
                         in_table = true;
@@ -97,13 +114,13 @@ impl MarkdownViewer {
 
                 let columns = headers.into_iter().enumerate().map(|(i, header)| {
                     crate::overrides::table::column(
-                        self.form_line(header, list_level),
+                        self.form_line(config, header, list_level),
                         move |row: TableRow| {
                             if row.cells.is_empty() {
-                                return self.form_line(vec![], list_level);
+                                return self.form_line(config, vec![], list_level);
                             }
 
-                            self.form_line(row.cells[i].clone(), list_level)
+                            self.form_line(config, row.cells[i].clone(), list_level)
                         },
                     )
                     .width(Length::Fill)
@@ -115,7 +132,7 @@ impl MarkdownViewer {
                 column = column.push(table);
                 in_table = false;
             } else {
-                column = column.push(self.form_line(rich_spans.clone(), list_level));
+                column = column.push(self.form_line(config, rich_spans.clone(), list_level));
                 rich_spans.clear();
             }
         }
@@ -128,46 +145,55 @@ impl MarkdownViewer {
 
     fn form_line<'a>(
         &self,
-        mut spans: Vec<Span<'a, super::Message>>,
+        config: &MarkdownViewerRenderConfig,
+        mut spans: Vec<RenderSpan>,
         list_level: usize,
     ) -> Element<'a, super::Message> {
         if list_level > 0 {
-            spans.insert(0, span("- "));
-            spans.insert(0, span("  ".repeat(list_level)));
+            spans.insert(
+                0,
+                RenderSpan {
+                    words: vec![" ".repeat(list_level), "- ".to_string()],
+                    ..Default::default()
+                },
+            );
         }
 
-        if self.is_hovered {
-            let mut new_spans: Vec<Span<super::Message>> = vec![];
-            for span in spans {
-                for char in span.text.chars() {
-                    let mut char_span = iced::widget::span(char.to_string());
+        let mut row = iced::widget::Row::new();
 
-                    if let Some(size) = span.size {
-                        char_span = char_span.size(size);
+        // text_editor(content)
+
+        // TODO: Flat?
+        for span in spans {
+            let underline = span.underline;
+            let heading_color = self.config.heading_color;
+            let word_style = move |_: &Theme| iced::widget::container::Style {
+                // border: Border { width: 1.0, color: Color::from_rgb(0.0, 1.0, 0.0), ..Default::default() },
+                shadow: if underline {
+                    Shadow {
+                        color: heading_color.clone(),
+                        offset: iced::Vector::new(0.0, 2.0),
+                        ..Default::default()
                     }
+                } else {
+                    Shadow::default()
+                },
+                ..Default::default()
+            };
 
-                    if let Some(font) = span.font {
-                        char_span = char_span.font(font);
-                    }
+            for word in span.words.into_iter() {
+                let text = iced::widget::text(word)
+                    .size(span.size.unwrap_or(BASE_TEXT_SIZE))
+                    .font(span.font);
 
-                    if let Some(color) = span.color {
-                        char_span = char_span.color(color);
-                    }
-
-                    if span.underline {
-                        char_span = char_span.underline(true);
-                    }
-
-                    char_span = char_span.color(Color::from_rgb(0.0, 1.0, 0.0));
-
-                    new_spans.push(char_span);
-                }
+                row = row.push(
+                    Container::new(text.color(span.color.unwrap_or(Color::WHITE)))
+                        .style(word_style),
+                )
             }
-
-            rich_text(new_spans).into()
-        } else {
-            rich_text(spans).into()
         }
+
+        row.wrap().into()
     }
 
     fn level_to_text_size(level: u16) -> u16 {
@@ -182,9 +208,15 @@ impl MarkdownViewer {
         }
     }
 
-    fn view_md_item(&self, item: &MdItem, state: &ViewContext) -> Vec<RenderAction> {
+    fn view_md_item<'a>(
+        &'a self,
+        config: &MarkdownViewerRenderConfig,
+        item: &'a MdItem,
+        state: &ViewContext,
+    ) -> Vec<RenderAction> {
         match &item.variant {
             MdItemVariant::Heading { content, level } => self.nesting(
+                config,
                 content,
                 &ViewContext {
                     text_size: Self::level_to_text_size(*level),
@@ -200,6 +232,7 @@ impl MarkdownViewer {
                 });
 
                 result.extend(self.nesting(
+                    config,
                     content,
                     &ViewContext {
                         list_level: state.list_level + 1,
@@ -216,7 +249,7 @@ impl MarkdownViewer {
 
                 for (row_index, row) in cells.iter().enumerate() {
                     for cell in row {
-                        result.extend(self.view_md_item(cell, state));
+                        result.extend(self.view_md_item(config, cell, state));
                         result.push(RenderAction::TableNextCell {
                             header: row_index == 0,
                         });
@@ -226,39 +259,39 @@ impl MarkdownViewer {
 
                 result
             }
-            MdItemVariant::Chunks { items } => self.nesting(items, state),
+            MdItemVariant::Chunks { items } => self.nesting(config, items, state),
             MdItemVariant::Text { content } => {
                 let mut result = vec![];
 
-                let content = content.clone();
+                let mut font = Font::default();
 
-                let mut span = iced::widget::span(content).size(state.text_size).font({
-                    let mut font = Font::default();
-
-                    if state.bold {
-                        font.weight = Weight::ExtraBold;
-                    }
-
-                    if state.italic {
-                        font.style = font::Style::Italic;
-                    }
-
-                    font
-                });
-
-                span = span.underline(state.heading_level > 0);
-                span = span.color(Color::WHITE);
-                if state.heading_level > 0 {
-                    span = span.color(self.config.heading_color);
+                if state.bold {
+                    font.weight = Weight::ExtraBold;
                 }
 
-                result.push(RenderAction::Span {
-                    content: span.into(),
-                });
+                if state.italic {
+                    font.style = font::Style::Italic;
+                }
+
+                font.family = font::Family::Monospace;
+
+                result.push(RenderAction::Span(RenderSpan {
+                    // words: split(content),
+                    words: vec![content.to_string()],
+                    size: Some(state.text_size),
+                    font: font,
+                    color: if state.heading_level > 0 {
+                        Some(self.config.heading_color)
+                    } else {
+                        Some(Color::WHITE)
+                    },
+                    underline: state.heading_level > 0,
+                }));
 
                 return result;
             }
             MdItemVariant::Strong { content } => self.nesting(
+                config,
                 content,
                 &ViewContext {
                     bold: true,
@@ -266,6 +299,7 @@ impl MarkdownViewer {
                 },
             ),
             MdItemVariant::Emphasis { content } => self.nesting(
+                config,
                 content,
                 &ViewContext {
                     italic: true,
@@ -275,12 +309,41 @@ impl MarkdownViewer {
         }
     }
 
-    fn nesting(&self, content: &[MdItem], state: &ViewContext) -> Vec<RenderAction> {
+    fn nesting<'a>(
+        &'a self,
+        config: &MarkdownViewerRenderConfig,
+        content: &'a [MdItem],
+        state: &ViewContext,
+    ) -> Vec<RenderAction> {
         let mut result = vec![];
         for child in content {
-            result.extend(self.view_md_item(child, state));
+            result.extend(self.view_md_item(config, child, state));
         }
 
         result
     }
+}
+#[cached(
+    ty = "SizedCache<String, Vec<String>>",
+    create = "{ SizedCache::with_size(100) }",
+    convert = r#"{ format!("{}", txt) }"#
+)]
+fn split(txt: &str) -> Vec<String> {
+    let mut result = vec!["".to_string()];
+
+    for chr in txt.chars() {
+        if chr.is_whitespace() {
+            if !result.last().unwrap().trim().is_empty() {
+                result.push("".to_string());
+            }
+        } else {
+            if result.last().unwrap().trim().is_empty() {
+                result.push("".to_string());
+            }
+        }
+
+        result.last_mut().unwrap().push_str(&chr.to_string());
+    }
+
+    result
 }

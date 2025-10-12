@@ -1,20 +1,30 @@
-use framework::{types::dto::MessageID, Context};
+use framework::{Context, types::dto::MessageID};
 use iced::{
-    keyboard::{key::Named, Key}, widget::{
-        container, horizontal_space, text_editor::{self, Binding, KeyPress}, Column, Container, Row, Text, Tooltip
-    }, Element, Padding, Theme
+    Color, Element, Length, Padding, Theme,
+    keyboard::{Key, key::Named},
+    widget::{
+        Column, Container, Row, Text, Tooltip, container, horizontal_space,
+        text_editor::{self, Binding, KeyPress},
+    },
 };
 
-use crate::{app::common::markdown_viewer::{self, MarkdownViewer}, widgets::{
-    collapsible,
-    icon::{IconName, IconType},
-    icon_button::IconButton,
-}};
+use crate::{
+    app::common::markdown_viewer::{self, MarkdownViewer, MarkdownViewerRenderConfig},
+    widgets::{
+        collapsible,
+        icon::{IconName, IconType},
+        icon_button::IconButton,
+    },
+};
 
 use super::{MessageViewer, message_viewer_state::SharedState};
 
 impl MessageViewer {
-    pub fn view<'a>(&'a self, state: &'a SharedState, ctx: &'a Context) -> Element<'a, super::Message> {
+    pub fn view<'a>(
+        &'a self,
+        state: &'a SharedState,
+        ctx: &'a Context,
+    ) -> Element<'a, super::Message> {
         let mut main_column = Column::new();
 
         let reasoning_string = self.reasoning.get_original().trim();
@@ -45,8 +55,7 @@ impl MessageViewer {
             ))
             .spacing(10);
 
-        main_column = main_column
-            .push(self.used_chunks(ctx));
+        main_column = main_column.push(self.used_chunks(ctx));
 
         main_column = if self.is_editing(state) {
             main_column.push(self.editing_controls())
@@ -55,8 +64,14 @@ impl MessageViewer {
         };
 
         let is_user_message = self.is_user_message();
-        Container::new(main_column)
+
+        let mut container = Container::new(main_column);
+
+        container = container.width(Length::Fill);
+
+        container
             .padding(10)
+            .id(self.id.clone())
             .padding(Padding {
                 top: 10.0,
                 bottom: 10.0,
@@ -77,16 +92,11 @@ impl MessageViewer {
                     ..Default::default()
                 }
             })
-            .id(iced::widget::container::Id::new(format!(
-                "message_{}_{}",
-                self.message_dto.conversation_id, self.message_dto.id
-            )))
             .into()
     }
 
-    fn used_chunks(&self, ctx: &Context) -> Element<'_, super::Message> {   
-        let mut main_row = Row::new()
-            .spacing(10);
+    fn used_chunks(&self, ctx: &Context) -> Element<'_, super::Message> {
+        let mut main_row = Row::new().spacing(10);
 
         for chunk in &self.message_dto.chunks {
             let chunk_dto = ctx.vector_service.get_chunk(
@@ -108,36 +118,36 @@ impl MessageViewer {
 
             let chunk_dto = chunk_dto.unwrap();
 
-            let file = ctx.vector_service.get_file(self.message_dto.conversation_id, chunk_dto.file_id)
+            let file = ctx
+                .vector_service
+                .get_file(self.message_dto.conversation_id, chunk_dto.file_id)
                 .expect("File not found");
 
-            main_row = main_row.push(
-                Tooltip::new(
-                    Text::new(file.file_name).style(|theme: &Theme| {
-                        let palette = theme.extended_palette();
-                        iced::widget::text::Style {
-                            color: Some(palette.primary.base.color),
-                        }
-                    }),
-                    Container::new(
-                        Text::new(format!("{}: {}\n{}", file.embedding_model, file.dimension, chunk_dto.chunk)),
-                    )
-                    .max_width(600.0)
-                    .max_height(400.0)
-                    .padding(10)
-                    .style(|theme: &Theme| {
-                        let palette = theme.extended_palette();
-                        container::Style {
-                            background: Some(iced::Background::Color(palette.primary.base.color)),
-                            ..Default::default()
-                        }
-                    }),
-
-                    iced::widget::tooltip::Position::FollowCursor,
-                )
-            )
+            main_row = main_row.push(Tooltip::new(
+                Text::new(file.file_name).style(|theme: &Theme| {
+                    let palette = theme.extended_palette();
+                    iced::widget::text::Style {
+                        color: Some(palette.primary.base.color),
+                    }
+                }),
+                Container::new(Text::new(format!(
+                    "{}: {}\n{}",
+                    file.embedding_model, file.dimension, chunk_dto.chunk
+                )))
+                .max_width(600.0)
+                .max_height(400.0)
+                .padding(10)
+                .style(|theme: &Theme| {
+                    let palette = theme.extended_palette();
+                    container::Style {
+                        background: Some(iced::Background::Color(palette.primary.base.color)),
+                        ..Default::default()
+                    }
+                }),
+                iced::widget::tooltip::Position::FollowCursor,
+            ))
         }
-        
+
         Container::new(main_row).into()
     }
 
@@ -156,7 +166,11 @@ impl MessageViewer {
                 .into();
         }
 
-        return content.view().map(update_message);
+        return content
+            .view(&MarkdownViewerRenderConfig {
+                plain: !self.visible,
+            })
+            .map(update_message);
     }
 
     fn message_controls(&self) -> Element<'_, super::Message> {

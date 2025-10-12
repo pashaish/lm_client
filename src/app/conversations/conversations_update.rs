@@ -11,31 +11,13 @@ impl Conversations {
     pub fn update(&mut self, ctx: &mut Context, message: super::Message) -> Task<super::Message> {
         match message {
             super::Message::HideSettingsPane => {
-                if self.settings_pane_split.is_none() {
-                    return Task::none();
-                }
-
-                let settings_pane = self.settings_pane.expect("Settings pane is not open");
-
-                self.panes.close(settings_pane);
-
-                self.settings_pane = None;
-                self.settings_pane_split = None;
+                self.settings_pane_opened = false;
+                self.panes.resize(self.settings_pane_split, 1.0);
                 Task::none()
             }
             super::Message::ShowSettingsPane => {
-                let (settings_pane, chat_split) = self
-                    .panes
-                    .split(
-                        pane_grid::Axis::Vertical,
-                        self.chat_pane,
-                        super::conversations_state::Pane::Settings,
-                    )
-                    .expect("Failed to split pane");
-
-                self.settings_pane = Some(settings_pane);
-                self.settings_pane_split = Some(chat_split);
-                self.panes.resize(chat_split, self.settings_pane_ratio);
+                self.settings_pane_opened = true;
+                self.panes.resize(self.settings_pane_split, self.settings_pane_ratio);
                 Task::none()
             }
             super::Message::DeleteConversation(id) => {
@@ -77,9 +59,7 @@ impl Conversations {
                 Task::batch(tasks)
             }
             super::Message::Resize(event) => {
-                if Some(event.split) == self.settings_pane_split {
-                    self.settings_pane_ratio = event.ratio;
-                }
+                self.settings_pane_ratio = event.ratio;
 
                 self.panes.resize(event.split, event.ratio);
                 Task::none()

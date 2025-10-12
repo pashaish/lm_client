@@ -13,8 +13,22 @@ impl MessageViewer {
         message: super::Message,
         state: &mut SharedState,
     ) -> Task<super::Message> {
+
         match message {
-            super::Message::ContentUpdate(msg) => self.content.update(msg).map(super::Message::ContentUpdate),
+            super::Message::ContentUpdate(msg) => {
+                // TODO: DEBUG:
+                // match msg {
+                //     markdown_viewer::Message::OnEnterMouse => {
+                //         self.visible = true;
+                //     }
+                //     markdown_viewer::Message::OnLeaveMouse => {
+                //         self.visible = false;
+                //     }
+                //     _ => {}
+                // };
+
+                self.content.update(msg).map(super::Message::ContentUpdate)
+            },
             super::Message::ReasoningUpdate(msg) => self.reasoning.update(msg).map(super::Message::ReasoningUpdate),
             super::Message::Delete => {
                 let conversations_service = self.conversations_service.clone();
@@ -85,14 +99,24 @@ impl MessageViewer {
                 )
             }
             super::Message::UpdateMessageDTO(dto) => {
-                log::debug!("Update message DTO: {:?}", dto);
                 self.message_dto = dto.clone();
                 self.content.set_original(dto.content);
                 self.reasoning.set_original(dto.reasoning.unwrap_or_default());
 
                 Task::none()
             }
-            // super::Message::LinkClicked(_url) => Task::none(),
+            super::Message::RequestVisibleBounds => {
+                iced::widget::container::visible_bounds(self.id.clone()).map(super::Message::VisibleBounds)
+            },
+            super::Message::VisibleBounds(bounds) => {
+                if let Some(_) = bounds {
+                    self.visible = true;
+                } else {
+                    self.visible = false;
+                }
+
+                Task::none()
+            }
             super::Message::ReasoningExpanded(expanded) => {
                 self.reasoning_expanded = expanded;
                 Task::none()

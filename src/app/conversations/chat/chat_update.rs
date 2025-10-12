@@ -1,3 +1,5 @@
+use crate::overrides;
+
 use super::{
     Chat,
     message_viewer::{self, MessageViewer},
@@ -18,7 +20,7 @@ use iced::{
 };
 
 const BATCH_SIZE: usize = 8;
-const INITIAL_BATCH_SIZE: usize = 8;
+const INITIAL_BATCH_SIZE: usize = 1;
 
 impl Chat {
     pub fn update(&mut self, ctx: &mut Context, message: super::Message) -> Task<super::Message> {
@@ -58,7 +60,6 @@ impl Chat {
                 if conversation_id == self.conversation_id {
                     self.messages.clear();
                     self.last_message_id = 0;
-                    self.is_loaded_all_messages = false;
 
                     if let Some(aborter) = self.gathering_message_aborter.take() {
                         aborter.abort();
@@ -85,9 +86,7 @@ impl Chat {
                 Task::none()
             }
             super::Message::MessagingServiceEvent(event) => match event {
-                MessagingEvent::ReceiveMessage(status) => {
-                    self.chat_complitation_event(ctx, status)
-                }
+                MessagingEvent::ReceiveMessage(status) => self.chat_complitation_event(ctx, status),
                 MessagingEvent::Error(_err) => {
                     self.gathering_message_process = false;
                     self.gathering_message = None;
@@ -141,7 +140,8 @@ impl Chat {
                 self.loaded_batch_messages(ctx, new_messages)
             }
             super::Message::EndLoadingMessages => {
-                self.is_loaded_all_messages = false;
+                self.load_messages();
+
                 Task::none()
             }
             super::Message::CommitGatheringMessage(new_dto) => {
@@ -239,6 +239,20 @@ impl Chat {
         task
     }
 
+    fn load_messages(&mut self) {
+        self.list_messages_content = overrides::list::Content::with_items(
+            self.sorted_messages_ids
+                .iter()
+                .map(|id| {
+                    self.messages
+                        .get(id)
+                        .expect("Failed to get message")
+                        .clone()
+                })
+                .collect::<Vec<_>>(),
+        );
+    }
+
     fn update_message(
         &mut self,
         ctx: &mut Context,
@@ -290,7 +304,8 @@ impl Chat {
         tasks.push(Task::perform(
             async move {
                 conversations_service
-                    .get_last_messages(conversation_id, 0, INITIAL_BATCH_SIZE)
+                    // .get_last_messages(conversation_id, 0, INITIAL_BATCH_SIZE)
+                    .get_all_messages(conversation_id)
                     .expect("Failed to load messages")
             },
             super::Message::LoadedBatchMessages,
@@ -353,10 +368,8 @@ impl Chat {
             }
         }
 
-        if self.messages.is_empty() {
-            tasks.push(Task::done(super::Message::EndLoadingMessages));
-        }
-
+        tasks.push(Task::done(super::Message::EndLoadingMessages));
+       
         Task::batch(tasks)
     }
 
@@ -411,29 +424,27 @@ impl Chat {
                     let conversation = conversation.expect("Failed to get conversation");
 
                     let is_summary =
-                        conversation.summary_enabled &&
-                        conversation.summary_provider.is_some();
+                        conversation.summary_enabled && conversation.summary_provider.is_some();
 
                     if conversation.is_chat() && is_summary {
                         let messaging_service = ctx.messaging_service.clone();
                         let conversation_id = self.conversation_id;
-                        return self.end_task(ctx)
+                        return self
+                            .end_task(ctx)
                             .chain(Task::done(super::Message::StartSummarizing))
                             .chain(Task::perform(
-                            async move {
-                                let result = messaging_service
-                                    .summarize(conversation_id)
-                                    .await;
+                                async move {
+                                    let result = messaging_service.summarize(conversation_id).await;
 
-                                if result.is_err() {
-                                    log::error!("Failed to summarize: {result:?}");
-                                    return MessageDTO::default();
-                                }
+                                    if result.is_err() {
+                                        log::error!("Failed to summarize: {result:?}");
+                                        return MessageDTO::default();
+                                    }
 
-                                result.expect("Failed to summarize")
-                            },
-                            super::Message::Summarized,
-                        ));
+                                    result.expect("Failed to summarize")
+                                },
+                                super::Message::Summarized,
+                            ));
                     }
                     return self.end_task(ctx);
                 }

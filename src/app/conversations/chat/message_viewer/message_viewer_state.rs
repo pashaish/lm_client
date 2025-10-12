@@ -2,7 +2,7 @@ use framework::{
     services::ConversationsService,
     types::dto::{MessageDTO, MessageID, RoleType}, utils::take_component,
 };
-use iced::widget::{text_editor};
+use iced::{Rectangle, widget::text_editor};
 
 use crate::{app::common::markdown_viewer::{self, MarkdownViewer, MarkdownViewerConfig}, theme::dark_theme::dark_theme_pallete};
 
@@ -24,6 +24,9 @@ pub enum Message {
 
     ContentUpdate(markdown_viewer::Message),
     ReasoningUpdate(markdown_viewer::Message),
+
+    RequestVisibleBounds,
+    VisibleBounds(Option<Rectangle>),
 }
 
 #[derive(Debug, Default)]
@@ -43,6 +46,10 @@ pub struct MessageViewer {
     pub(super) reasoning_expanded: bool,
 
     pub(super) conversations_service: ConversationsService,
+
+    pub(super) id: iced::widget::container::Id,
+
+    pub(super) visible: bool,
 }
 
 impl MessageViewer {
@@ -57,6 +64,9 @@ impl MessageViewer {
 
         (
             Self {
+                visible: false,
+                id: iced::widget::container::Id::unique(),
+
                 conversations_service: conversation_service,
                 message_dto: message_dto.clone(),
                 content: take_component(
