@@ -51,7 +51,7 @@ where
 
         let mut layout = self
             .content
-            .as_widget()
+            .as_widget_mut()
             .layout(self.tree, renderer, &limits);
 
         let half_width = layout.size().width / 2.0;
@@ -61,25 +61,25 @@ where
         Node::with_children(max_size, vec![layout])
     }
 
-    fn on_event(
-        &mut self,
-        _event: iced::Event,
-        _layout: iced::advanced::Layout<'_>,
-        _cursor: iced::advanced::mouse::Cursor,
-        _renderer: &Renderer,
-        _clipboard: &mut dyn iced::advanced::Clipboard,
-        _shell: &mut iced::advanced::Shell<'_, Message>,
-    ) -> iced::advanced::graphics::core::event::Status {
-        iced::advanced::graphics::core::event::Status::Ignored
+    fn update(
+            &mut self,
+            _event: &iced::Event,
+            _layout: layout::Layout<'_>,
+            _cursor: iced::advanced::mouse::Cursor,
+            _renderer: &Renderer,
+            _clipboard: &mut dyn iced::advanced::Clipboard,
+            _shell: &mut iced::advanced::Shell<'_, Message>,
+        ) {
+        
     }
 
-    fn is_over(
-        &self,
-        _layout: layout::Layout<'_>,
-        _renderer: &Renderer,
-        _cursor_position: Point,
-    ) -> bool {
-        false
+    fn mouse_interaction(
+            &self,
+            _layout: layout::Layout<'_>,
+            _cursor: iced::advanced::mouse::Cursor,
+            _renderer: &Renderer,
+        ) -> iced::advanced::mouse::Interaction {
+        return iced::advanced::mouse::Interaction::None;
     }
 
     fn draw(

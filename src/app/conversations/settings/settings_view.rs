@@ -7,8 +7,7 @@ use framework::Context;
 use iced::{
     Element, Theme,
     widget::{
-        Column, Container, Row, Scrollable, Text, container,
-        horizontal_space,
+        Column, Container, Row, Scrollable, Text, container, space,
     },
 };
 
@@ -102,7 +101,7 @@ impl Settings {
             );
 
             if is_expanded {
-                column = column.push(Row::new().push(horizontal_space().width(10)).push(element));
+                column = column.push(Row::new().push(space::horizontal().width(10)).push(element));
             }
         }
 

@@ -96,7 +96,7 @@ impl TreeNode {
                 state.renaming_process = Some(self.id);
                 state.rename_temp_value = Some(self.name.clone());
 
-                ctx.focus_manager.focus(&self.focus_id)
+                ctx.focus_manager.focus(self.focus_id.clone())
             }
             super::NodeAction::RenameProcess(new_value) => {
                 state.rename_temp_value = Some(new_value);

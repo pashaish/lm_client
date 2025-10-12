@@ -2,8 +2,7 @@ use framework::{Context, types::dto::PresetDTO};
 use iced::{
     Element, Padding, Theme,
     widget::{
-        Column, Container, Row, Scrollable, Slider, Text, TextEditor, TextInput, button, container,
-        horizontal_space, pane_grid, text,
+        Column, Container, Row, Scrollable, Slider, Text, TextEditor, TextInput, button, container, pane_grid, space, text
     },
 };
 
@@ -175,7 +174,7 @@ impl Presets {
                         .align_y(iced::alignment::Vertical::Center)
                         .spacing(10)
                         .push(Button::new("Save").on_press(super::Message::CommitChanges))
-                        .push(horizontal_space())
+                        .push(space::horizontal())
                         .push(if self.is_unsaved_changes() {
                             Text::new("Unsaved changes").style(text::danger).size(20)
                         } else {

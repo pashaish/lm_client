@@ -3,7 +3,6 @@ use crate::{
         markdown_viewer_state::{MdItem, MdItemVariant},
         markdown_viewer_view::BASE_TEXT_SIZE,
     },
-    overrides::table,
 };
 
 use super::MarkdownViewer;

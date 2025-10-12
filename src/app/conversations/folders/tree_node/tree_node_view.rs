@@ -1,6 +1,6 @@
 use iced::{
     Element, Length, Padding, Theme,
-    widget::{Container, MouseArea, Row, TextInput, container::Style, horizontal_space},
+    widget::{Container, MouseArea, Row, TextInput, container::Style, space},
 };
 
 use crate::widgets::{
@@ -96,7 +96,7 @@ impl TreeNode {
 
         main_row = main_row.push(icn);
         main_row = main_row.push(iced::widget::text(self.name.clone()).size(16));
-        main_row = main_row.push(horizontal_space());
+        main_row = main_row.push(space::horizontal());
 
         let is_hover = self.is_hover(state);
         let is_pressed = self.is_pressed(state);

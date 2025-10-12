@@ -129,7 +129,7 @@ pub struct TreeNode {
     pub(super) id: ConversationNodeID,
     pub(super) content: Content,
     pub(super) parent_id: ConversationNodeID,
-    pub(super) focus_id: String,
+    pub(super) focus_id: iced::widget::Id,
 }
 
 impl TreeNode {
@@ -155,7 +155,8 @@ impl TreeNode {
             name,
             id,
             content: Content::Loading,
-            focus_id: format!("TREE_NODE_{id}"),
+            focus_id: iced::widget::Id::unique(),
+            // focus_id: format!("TREE_NODE_{id}").leak(),
         };
 
         if matches!(tp, ConversationType::Folder) {

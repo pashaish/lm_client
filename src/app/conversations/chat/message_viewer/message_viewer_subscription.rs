@@ -18,9 +18,9 @@ impl MessageViewer {
                 .map(super::Message::ReasoningUpdate),
         );
 
-        subs.push(listen_raw(|_event, _, _| {
-            Some(super::Message::RequestVisibleBounds)
-        }));
+        // subs.push(listen_raw(|_event, _, _| {
+        //     Some(super::Message::RequestVisibleBounds)
+        // }));
 
         Subscription::batch(subs)
     }

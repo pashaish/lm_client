@@ -1,3 +1,4 @@
+use framework::utils::migration_14;
 use iced::{Element, Theme};
 
 #[derive(Debug, Clone, Copy)]
@@ -72,7 +73,7 @@ impl Icon {
         self
     }
 
-    pub fn view(self) -> iced_font_awesome::FaIcon<'static, Theme> {
+    pub fn view(self) -> migration_14::iced_font_awesome::FaIcon<'static, Theme> {
         icon_element(self.icon).style(move |theme: &Theme| {
             let palette = theme.extended_palette();
             iced::widget::text::Style {
@@ -82,17 +83,17 @@ impl Icon {
     }
 }
 
-fn icon_element<'a>(icon_type: IconType) -> iced_font_awesome::FaIcon<'a, Theme> {
+fn icon_element<'a>(icon_type: IconType) -> migration_14::iced_font_awesome::FaIcon<'a, Theme> {
     match icon_type {
-        IconType::Solid(icon_name) => iced_font_awesome::fa_icon_solid(icon_name_to_str(icon_name)),
-        IconType::Regular(icon_name) => iced_font_awesome::fa_icon(icon_name_to_str(icon_name)),
+        IconType::Solid(icon_name) => migration_14::iced_font_awesome::fa_icon_solid(icon_name_to_str(icon_name)),
+        IconType::Regular(icon_name) => migration_14::iced_font_awesome::fa_icon(icon_name_to_str(icon_name)),
         IconType::Brands(icon_name) => {
-            iced_font_awesome::fa_icon_brands(icon_name_to_str(icon_name))
+            migration_14::iced_font_awesome::fa_icon_brands(icon_name_to_str(icon_name))
         }
     }
 }
 
-impl From<Icon> for iced_font_awesome::FaIcon<'static, Theme> {
+impl From<Icon> for migration_14::iced_font_awesome::FaIcon<'static, Theme> {
     fn from(icon: Icon) -> Self {
         icon.view()
     }

@@ -1,11 +1,7 @@
 use cached::proc_macro::cached;
 use iced::{
     Border, Color, Element, Font, Length, Padding, Shadow, Theme, advanced::Widget, font::{self, Weight}, theme::{Palette, palette::Background}, widget::{
-        Button, Column, Container, MouseArea, Row, horizontal_space,
-        keyed::column,
-        span,
-        text::{LineHeight, Span},
-        text_editor,
+        Button, Column, Container, MouseArea, Row, keyed::column, span, table, text::{LineHeight, Span}, text_editor
     }
 };
 use url::Url;
@@ -13,16 +9,16 @@ use cached::SizedCache;
 
 use crate::{
     app::common::markdown_viewer::markdown_viewer_state::{MdItem, MdItemVariant},
-    overrides::{self, rich::rich_text},
+    overrides::{self},
     theme::dark_theme::{self, dark_theme, dark_theme_pallete},
 };
 
 use super::MarkdownViewer;
 
-pub(super) const BASE_TEXT_SIZE: u16 = 16;
+pub(super) const BASE_TEXT_SIZE: f32 = 16.0;
 
 pub(super) struct ViewContext {
-    pub text_size: u16,
+    pub text_size: f32,
     pub bold: bool,
     pub italic: bool,
     pub list_level: usize,
@@ -37,7 +33,7 @@ struct TableRow {
 #[derive(Clone, Default)]
 struct RenderSpan {
     pub words: Vec<String>,
-    pub size: Option<u16>,
+    pub size: Option<f32>,
     pub font: Font,
     pub color: Option<Color>,
     pub underline: bool,
@@ -113,7 +109,8 @@ impl MarkdownViewer {
                 }
 
                 let columns = headers.into_iter().enumerate().map(|(i, header)| {
-                    crate::overrides::table::column(
+                    // crate::overrides::table::column(
+                    table::column(
                         self.form_line(config, header, list_level),
                         move |row: TableRow| {
                             if row.cells.is_empty() {
@@ -126,8 +123,8 @@ impl MarkdownViewer {
                     .width(Length::Fill)
                 });
 
-                let table: overrides::table::Table<super::Message> =
-                    overrides::table::table(columns, rows.clone()).width(Length::Fill);
+                let table: table::Table<super::Message> =
+                    table::table(columns, rows.clone()).width(Length::Fill);
 
                 column = column.push(table);
                 in_table = false;
@@ -196,14 +193,14 @@ impl MarkdownViewer {
         row.wrap().into()
     }
 
-    fn level_to_text_size(level: u16) -> u16 {
+    fn level_to_text_size(level: u16) -> f32 {
         match level {
-            1 => (BASE_TEXT_SIZE as f32 * 2.5) as u16,
-            2 => (BASE_TEXT_SIZE as f32 * 2.0) as u16,
-            3 => (BASE_TEXT_SIZE as f32 * 1.5) as u16,
-            4 => (BASE_TEXT_SIZE as f32 * 1.3) as u16,
-            5 => (BASE_TEXT_SIZE as f32 * 1.1) as u16,
-            6 => (BASE_TEXT_SIZE as f32 * 1.0) as u16,
+            1 => BASE_TEXT_SIZE * 2.5,
+            2 => BASE_TEXT_SIZE * 2.0,
+            3 => BASE_TEXT_SIZE * 1.5,
+            4 => BASE_TEXT_SIZE * 1.3,
+            5 => BASE_TEXT_SIZE * 1.1,
+            6 => BASE_TEXT_SIZE * 1.0,
             _ => panic!("Invalid heading level"),
         }
     }

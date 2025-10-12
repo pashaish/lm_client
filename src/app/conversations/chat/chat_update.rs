@@ -140,7 +140,7 @@ impl Chat {
                 self.loaded_batch_messages(ctx, new_messages)
             }
             super::Message::EndLoadingMessages => {
-                self.load_messages();
+                // self.load_messages();
 
                 Task::none()
             }
@@ -164,9 +164,10 @@ impl Chat {
 
                 self.messages.insert(new_dto.id, gathering_message);
 
-                tasks.push(operate(operation::focusable::focus(
-                    iced::advanced::widget::Id::new(self.text_editor_id.clone()),
-                )));
+                // TODO: Need do something
+                // tasks.push(operate(operation::focusable::focus(
+                //     iced::advanced::widget::Id::new(self.text_editor_id.clone()),
+                // )));
 
                 Task::batch(tasks)
             }
@@ -239,19 +240,19 @@ impl Chat {
         task
     }
 
-    fn load_messages(&mut self) {
-        self.list_messages_content = overrides::list::Content::with_items(
-            self.sorted_messages_ids
-                .iter()
-                .map(|id| {
-                    self.messages
-                        .get(id)
-                        .expect("Failed to get message")
-                        .clone()
-                })
-                .collect::<Vec<_>>(),
-        );
-    }
+    // fn load_messages(&mut self) {
+    //     self.list_messages_content = overrides::list::Content::with_items(
+    //         self.sorted_messages_ids
+    //             .iter()
+    //             .map(|id| {
+    //                 self.messages
+    //                     .get(id)
+    //                     .expect("Failed to get message")
+    //                     .clone()
+    //             })
+    //             .collect::<Vec<_>>(),
+    //     );
+    // }
 
     fn update_message(
         &mut self,

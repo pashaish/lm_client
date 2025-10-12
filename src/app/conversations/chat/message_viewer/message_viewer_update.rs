@@ -105,18 +105,20 @@ impl MessageViewer {
 
                 Task::none()
             }
-            super::Message::RequestVisibleBounds => {
-                iced::widget::container::visible_bounds(self.id.clone()).map(super::Message::VisibleBounds)
-            },
-            super::Message::VisibleBounds(bounds) => {
-                if let Some(_) = bounds {
-                    self.visible = true;
-                } else {
-                    self.visible = false;
-                }
+            // TODO: UPDATE
+            // super::Message::RequestVisibleBounds => {
+            //     iced::widget::container::visible_bounds(self.id.clone()).map(super::Message::VisibleBounds)
+            // },
 
-                Task::none()
-            }
+            // super::Message::VisibleBounds(bounds) => {
+            //     if let Some(_) = bounds {
+            //         self.visible = true;
+            //     } else {
+            //         self.visible = false;
+            //     }
+
+            //     Task::none()
+            // }
             super::Message::ReasoningExpanded(expanded) => {
                 self.reasoning_expanded = expanded;
                 Task::none()

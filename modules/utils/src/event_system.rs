@@ -1,12 +1,31 @@
 use std::{
     any::Any,
     fmt::Debug,
+    hash::Hash,
     sync::{Arc, RwLock},
 };
 
-use iced::{Subscription, futures::stream};
-use types::{common::ProgressStatus, dto::{ConversationNodeDTO, ConversationNodeID, MessageDTO, MessageID, PresetDTO, ProviderDTO, RagFileDTO}};
+use iced::{
+    Subscription,
+    advanced::{
+        graphics::futures::MaybeSend,
+        subscription::{EventStream, Hasher, Recipe, from_recipe},
+    },
+    futures::{
+        self, Stream,
+        stream::{self, BoxStream},
+    },
+};
+use types::{
+    common::ProgressStatus,
+    dto::{
+        ConversationNodeDTO, ConversationNodeID, MessageDTO, MessageID, PresetDTO, ProviderDTO,
+        RagFileDTO,
+    },
+};
 use uuid::Uuid;
+
+use crate::migration_14;
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -28,9 +47,9 @@ impl PartialEq for Event {
         match (self, other) {
             (Self::ConversationUpdate(a), Self::ConversationUpdate(b)) => a.id == b.id,
 
-            (Self::MessageDelete(a), Self::MessageDelete(b)) |
-            (Self::ConversationDelete(a), Self::ConversationDelete(b)) |
-            (
+            (Self::MessageDelete(a), Self::MessageDelete(b))
+            | (Self::ConversationDelete(a), Self::ConversationDelete(b))
+            | (
                 Self::RagFilesUpdated {
                     conversation_id: a, ..
                 },
@@ -51,17 +70,17 @@ impl PartialEq for Event {
 }
 
 impl Event {
-    #[must_use] pub fn get_data(&self) -> Box<dyn Any> {
+    #[must_use]
+    pub fn get_data(&self) -> Box<dyn Any> {
         match self {
             Self::UpdatePresets(data) => Box::new(data.clone()),
             Self::LoadingFilesStatus(data) => Box::new(data.clone()),
             Self::ProvidersUpdate(data) => Box::new(data.clone()),
             Self::ConversationReceiveMessage(data) => Box::new(data.clone()),
-            
+
             Self::ConversationUpdate(data) => Box::new(data.clone()),
-            
-            Self::MessageDelete(data) |
-            Self::ConversationDelete(data) => Box::new(*data),
+
+            Self::MessageDelete(data) | Self::ConversationDelete(data) => Box::new(*data),
 
             Self::RagFilesUpdated {
                 conversation_id,
@@ -78,7 +97,8 @@ pub struct EventSystem {
 }
 
 impl EventSystem {
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             queue: Arc::new(RwLock::new(vec![])),
             events: Arc::new(RwLock::new(vec![])),
@@ -132,7 +152,8 @@ impl EventSystem {
                 let data = data.as_ref().clone();
                 let data = converter(data);
 
-                subs.push(Subscription::run_with_id(
+
+                subs.push(migration_14::subscription::run_with_id(
                     Uuid::new_v4().to_string(),
                     stream::once(async move { data }),
                 ));

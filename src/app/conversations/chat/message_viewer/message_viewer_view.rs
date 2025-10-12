@@ -3,8 +3,7 @@ use iced::{
     Color, Element, Length, Padding, Theme,
     keyboard::{Key, key::Named},
     widget::{
-        Column, Container, Row, Text, Tooltip, container, horizontal_space,
-        text_editor::{self, Binding, KeyPress},
+        Column, Container, Row, Text, Tooltip, container, space, text_editor::{self, Binding, KeyPress}
     },
 };
 
@@ -176,7 +175,7 @@ impl MessageViewer {
     fn message_controls(&self) -> Element<'_, super::Message> {
         let is_gathering_message = self.get_id() == MessageID::default();
         Row::new()
-            .push(horizontal_space())
+            .push(space::horizontal())
             .push(
                 IconButton::new(IconType::Solid(IconName::Pencil), super::Message::StartEdit)
                     .disabled(is_gathering_message),
@@ -190,7 +189,7 @@ impl MessageViewer {
 
     fn editing_controls(&self) -> Element<'_, super::Message> {
         Row::new()
-            .push(horizontal_space())
+            .push(space::horizontal())
             .push(IconButton::new(
                 IconType::Solid(IconName::XMark),
                 super::Message::CancelEdit,
@@ -203,9 +202,9 @@ impl MessageViewer {
     }
 
     fn key_bindings(&self, key: KeyPress) -> Option<Binding<super::Message>> {
-        if key.status != text_editor::Status::Focused {
+        let text_editor::Status::Focused { .. } = key.status  else {
             return None;
-        }
+        };
 
         if key.modifiers.shift() && key.key == Key::Named(Named::Enter) {
             return Some(Binding::Custom(super::Message::SubmitEdit));

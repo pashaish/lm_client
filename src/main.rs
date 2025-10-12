@@ -8,13 +8,14 @@ mod theme;
 mod widgets;
 mod overrides;
 
-#[tokio::main]
-async fn main() {
+// #[tokio::main]
+fn main() {
     env_logger::init();
 
-    iced::application(APP_NAME, App::update, App::view)
-        .theme(|_| Theme::Custom(dark_theme()))
+    iced::application(App::new, App::update, App::view)
+        // TODO: NEED RETURN THEME
+        // .theme(|_| Theme::Custom(dark_theme()))
         .subscription(App::subscription)
-        .run_with(App::new)
+        .run()
         .expect("Failed to run the application");
 }

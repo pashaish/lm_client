@@ -2,8 +2,7 @@ use framework::Context;
 use iced::{
     Element, Padding, Size,
     widget::{
-        Column, MouseArea, Row, Scrollable, container, horizontal_space,
-        vertical_space,
+        Column, MouseArea, Row, Scrollable, container, space,
     },
 };
 
@@ -27,7 +26,7 @@ impl Folders {
 
         main_column = main_column.push(
             Row::new()
-                .push(horizontal_space())
+                .push(space::horizontal())
                 .push(IconButton::new(
                     IconType::Solid(IconName::Plus),
                     super::Message::CreateChat,
@@ -45,7 +44,7 @@ impl Folders {
 
         main_column = main_column
             .push(
-                MouseArea::new(vertical_space().width(iced::Length::Fill).height(100))
+                MouseArea::new(space::vertical().width(iced::Length::Fill).height(100))
                     .on_release(super::Message::ReleaseFreeArea),
             );
 

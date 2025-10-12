@@ -52,21 +52,31 @@ where
     Theme: 'a,
     Content: Fn() -> iced::Element<'a, Message, Theme, Renderer> + 'a,
 {
-    fn on_event(
-        &mut self,
-        _state: &mut iced::advanced::widget::Tree,
-        _event: iced::Event,
+    fn mouse_interaction(
+        &self,
+        _state: &Tree,
         _layout: iced::advanced::Layout<'_>,
-        cursor: iced::advanced::mouse::Cursor,
-        _renderer: &Renderer,
-        _clipboard: &mut dyn iced::advanced::Clipboard,
-        _shell: &mut iced::advanced::Shell<'_, Message>,
+        _cursor: iced::advanced::mouse::Cursor,
         _viewport: &Rectangle,
-    ) -> iced::advanced::graphics::core::event::Status {
-        self.position = cursor.position().unwrap_or_default();
-
-        iced::advanced::graphics::core::event::Status::Ignored
+        _renderer: &Renderer,
+    ) -> iced::advanced::mouse::Interaction {
+        return iced::advanced::mouse::Interaction::None;
     }
+    // fn on_event(
+    //     &mut self,
+    //     _state: &mut iced::advanced::widget::Tree,
+    //     _event: iced::Event,
+    //     _layout: iced::advanced::Layout<'_>,
+    //     cursor: iced::advanced::mouse::Cursor,
+    //     _renderer: &Renderer,
+    //     _clipboard: &mut dyn iced::advanced::Clipboard,
+    //     _shell: &mut iced::advanced::Shell<'_, Message>,
+    //     _viewport: &Rectangle,
+    // ) -> iced::advanced::graphics::core::event::Status {
+    //     self.position = cursor.position().unwrap_or_default();
+
+    //     iced::advanced::graphics::core::event::Status::Ignored
+    // }
 
     fn size(&self) -> iced::Size<iced::Length> {
         (self.content)().as_widget().size()
@@ -77,7 +87,7 @@ where
     }
 
     fn layout(
-        &self,
+        &mut self,
         _tree: &mut iced::advanced::widget::Tree,
         _renderer: &Renderer,
         _limits: &iced::advanced::layout::Limits,
@@ -88,8 +98,9 @@ where
     fn overlay<'b>(
         &'b mut self,
         state: &'b mut Tree,
-        _layout: iced::advanced::Layout<'_>,
-        _renderer: &Renderer,
+        layout: iced::advanced::Layout<'_>,
+        renderer: &Renderer,
+        viewport: &Rectangle,
         translation: iced::Vector,
     ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
         if self.position == Point::ORIGIN {

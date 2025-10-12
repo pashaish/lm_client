@@ -4,9 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { version = "0.13.1", features = ["tokio", "advanced"] }
+# iced = { version = "0.13.1", features = ["tokio", "advanced"] }
+
+iced = { workspace = true }
 iced_font_awesome = { version = "0.2.1" }
-iced_aw = { version = "0.12.2", default-features = false, features = [
+iced_aw = { version = "0.13.0-dev", default-features = false, features = [
   "context_menu"
 ] }
 log = "0.4.27"
@@ -40,9 +42,19 @@ services = { path = "./modules/services" }
 api = { path = "./modules/api" }
 framework = { path = "./framework" }
 utils = { path = "./modules/utils" }
+iced = { version = "0.14.0-dev", default-features = false, features = [
+    "wgpu",
+    "advanced",
+    "tokio",
+]}
+iced_core = { version = "0.14.0-dev" }
 
 [patch.crates-io]
-iced = { git = "https://github.com/pashaish/iced.git", branch = "0.13.1-0.3"}
+iced = { git = "https://github.com/iced-rs/iced.git", rev = "6279590" }
+iced_core = { git = "https://github.com/iced-rs/iced.git", rev = "6279590" }
+iced_widget = { git = "https://github.com/iced-rs/iced.git", rev = "6279590" }
+
+iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", rev = "4ce2b07" }
 
 [workspace.lints.clippy]
 pedantic = { level = "deny", priority = -1 }

@@ -1,4 +1,5 @@
-use std::sync::{Arc, RwLock};
+use std::{hash::{DefaultHasher, Hash}, sync::{Arc, RwLock}};
+use std::hash::Hasher;
 
 use iced::{
     Subscription, Task,
@@ -10,6 +11,8 @@ use iced::{
     futures::stream,
     mouse,
 };
+
+use crate::migration_14;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -82,29 +85,56 @@ impl FocusManager {
     }
 
     /// # Panics
-    #[must_use] pub fn focus<T>(&self, raw_id: &str) -> iced::Task<T>
+    #[deprecated]
+    #[must_use] pub fn focus_by_raw<T>(&self, raw_id: &'static str) -> iced::Task<T>
     where
         T: Clone + Send + 'static,
     {
-        let id = Id::new(raw_id.to_string());
+        let id = Id::new(&raw_id);
+        self.focus(id)
+    }
+
+    #[must_use] pub fn focus<T>(&self, id: Id) -> iced::Task<T>
+    where
+        T: Clone + Send + 'static,
+    {
         let mut state = self.state.write().expect("Failed to write to state");
         state.previous_focus = Some(id.clone());
         state.current_focus = Some(id.clone());
 
-        operate(advanced::widget::operation::focusable::focus(id))
+        operate(advanced::widget::operation::focusable::focus(id.clone()))
     }
 
-    pub fn unfocus<TMessage>(
+    #[deprecated]
+    pub fn unfocus_by_raw<TMessage>(
         &self,
-        focus_id: &str,
+        focus_id: &'static str,
         message: TMessage,
     ) -> iced::Subscription<TMessage>
     where
         TMessage: Clone + Sync + Send + 'static,
     {
-        if self.was_unfocus(iced::advanced::widget::Id::new(focus_id.to_string())) {
-            return Subscription::run_with_id(
-                focus_id.to_string(),
+        let id = Id::new(&focus_id);
+        self.unfocus(id, message)
+    }
+    
+    pub fn unfocus<TMessage>(
+        &self,
+        focus_id: Id,
+        message: TMessage,
+    ) -> iced::Subscription<TMessage>
+    where
+        TMessage: Clone + Sync + Send + 'static,
+    {
+        if self.was_unfocus(focus_id.clone()) {
+            let focus_hash = {
+                let mut hasher = DefaultHasher::new();
+                focus_id.hash(&mut hasher);
+                hasher.finish()
+            };
+
+            return migration_14::subscription::run_with_id(
+                focus_hash,
                 stream::once(async move { message }),
             );
         }

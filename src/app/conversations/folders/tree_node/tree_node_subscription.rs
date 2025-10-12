@@ -14,7 +14,7 @@ impl TreeNode {
         }
 
         subs.push(ctx.focus_manager.unfocus(
-            &self.focus_id,
+            self.focus_id.clone(),
             super::Message::NodeAction(self.id, super::NodeAction::RenameCancel),
         ));
 

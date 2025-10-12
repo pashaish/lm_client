@@ -60,7 +60,7 @@ pub struct Chat {
     pub(super) is_need_generate: bool,
     pub(super) sorted_messages_ids: Vec<MessageID>,
 
-    pub(super) list_messages_content: overrides::list::Content<MessageViewer>
+    // pub(super) list_messages_content: overrides::list::Content<MessageViewer>
 }
 
 impl Chat {
@@ -85,7 +85,7 @@ impl Chat {
                 gathering_message_process: false,
                 shared_messages_state: message_viewer::SharedState::default(),
                 loading_file: false,
-                list_messages_content: overrides::list::Content::new(),
+                // list_messages_content: overrides::list::Content::new(),
             },
             iced::Task::batch(tasks),
         )
